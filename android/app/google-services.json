@@ -14,8 +14,12 @@
       },
       "oauth_client": [
         {
-          "client_id": "914416835191-a47maql1k16i3ksondi73dt6l75hmjfj.apps.googleusercontent.com",
-          "client_type": 3
+          "client_id": "914416835191-kqbku0f7vjta2pnvpg5j2j55pl0q6f7m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.pawmark_android",
+            "certificate_hash": "d532d677acc7a8135b264c03a80200eb0993d152"
+          }
         }
       ],
       "api_key": [
@@ -25,12 +29,7 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "914416835191-a47maql1k16i3ksondi73dt6l75hmjfj.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }
