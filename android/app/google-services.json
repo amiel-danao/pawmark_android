@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "914416835191",
+    "project_id": "pawmark",
+    "storage_bucket": "pawmark.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:914416835191:android:02c6ba88d8d8e0166a4472",
+        "android_client_info": {
+          "package_name": "com.example.pawmark_android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "914416835191-a47maql1k16i3ksondi73dt6l75hmjfj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_gohD48OcaEJb8eVybzoFl95cn-dfSjc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "914416835191-a47maql1k16i3ksondi73dt6l75hmjfj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
