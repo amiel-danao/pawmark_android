@@ -71,7 +71,9 @@ class SettingsPageStateState extends State<SettingsPageState> {
 
   Future getImage() async {
     ImagePicker imagePicker = ImagePicker();
-    PickedFile? pickedFile = await imagePicker.getImage(source: ImageSource.gallery).catchError((err) {
+    PickedFile? pickedFile = await imagePicker
+        .getImage(source: ImageSource.gallery)
+        .catchError((err) {
       Fluttertoast.showToast(msg: err.toString());
     });
     File? image;
@@ -89,18 +91,20 @@ class SettingsPageStateState extends State<SettingsPageState> {
 
   Future uploadFile() async {
     String fileName = id;
-    UploadTask uploadTask = settingProvider.uploadFile(avatarImageFile!, fileName);
+    UploadTask uploadTask =
+        settingProvider.uploadFile(avatarImageFile!, fileName);
     try {
       TaskSnapshot snapshot = await uploadTask;
       photoUrl = await snapshot.ref.getDownloadURL();
       UserChat updateInfo = UserChat(
-        id: id,
-        photoUrl: photoUrl,
-        nickname: nickname,
-        aboutMe: aboutMe,
-      );
+          id: id,
+          photoUrl: photoUrl,
+          nickname: nickname,
+          aboutMe: aboutMe,
+          isDoctor: "false");
       settingProvider
-          .updateDataFirestore(FirestoreConstants.pathUserCollection, id, updateInfo.toJson())
+          .updateDataFirestore(
+              FirestoreConstants.pathUserCollection, id, updateInfo.toJson())
           .then((data) async {
         await settingProvider.setPref(FirestoreConstants.photoUrl, photoUrl);
         setState(() {
@@ -129,13 +133,14 @@ class SettingsPageStateState extends State<SettingsPageState> {
       isLoading = true;
     });
     UserChat updateInfo = UserChat(
-      id: id,
-      photoUrl: photoUrl,
-      nickname: nickname,
-      aboutMe: aboutMe,
-    );
+        id: id,
+        photoUrl: photoUrl,
+        nickname: nickname,
+        aboutMe: aboutMe,
+        isDoctor: "false");
     settingProvider
-        .updateDataFirestore(FirestoreConstants.pathUserCollection, id, updateInfo.toJson())
+        .updateDataFirestore(
+            FirestoreConstants.pathUserCollection, id, updateInfo.toJson())
         .then((data) async {
       await settingProvider.setPref(FirestoreConstants.nickname, nickname);
       await settingProvider.setPref(FirestoreConstants.aboutMe, aboutMe);
@@ -184,7 +189,9 @@ class SettingsPageStateState extends State<SettingsPageState> {
                                     color: ColorConstants.greyColor,
                                   );
                                 },
-                                loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                                loadingBuilder: (BuildContext context,
+                                    Widget child,
+                                    ImageChunkEvent? loadingProgress) {
                                   if (loadingProgress == null) return child;
                                   return Container(
                                     width: 90,
@@ -192,9 +199,13 @@ class SettingsPageStateState extends State<SettingsPageState> {
                                     child: Center(
                                       child: CircularProgressIndicator(
                                         color: ColorConstants.themeColor,
-                                        value: loadingProgress.expectedTotalBytes != null
-                                            ? loadingProgress.cumulativeBytesLoaded /
-                                                loadingProgress.expectedTotalBytes!
+                                        value: loadingProgress
+                                                    .expectedTotalBytes !=
+                                                null
+                                            ? loadingProgress
+                                                    .cumulativeBytesLoaded /
+                                                loadingProgress
+                                                    .expectedTotalBytes!
                                             : null,
                                       ),
                                     ),
@@ -225,15 +236,18 @@ class SettingsPageStateState extends State<SettingsPageState> {
                   // Username
                   Container(
                     child: Text(
-                      'Nickname',
+                      'Dr',
                       style: TextStyle(
-                          fontStyle: FontStyle.italic, fontWeight: FontWeight.bold, color: ColorConstants.primaryColor),
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.bold,
+                          color: ColorConstants.primaryColor),
                     ),
                     margin: EdgeInsets.only(left: 10, bottom: 5, top: 10),
                   ),
                   Container(
                     child: Theme(
-                      data: Theme.of(context).copyWith(primaryColor: ColorConstants.primaryColor),
+                      data: Theme.of(context)
+                          .copyWith(primaryColor: ColorConstants.primaryColor),
                       child: TextField(
                         decoration: InputDecoration(
                           hintText: 'Sweetie',
@@ -255,13 +269,16 @@ class SettingsPageStateState extends State<SettingsPageState> {
                     child: Text(
                       'About me',
                       style: TextStyle(
-                          fontStyle: FontStyle.italic, fontWeight: FontWeight.bold, color: ColorConstants.primaryColor),
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.bold,
+                          color: ColorConstants.primaryColor),
                     ),
                     margin: EdgeInsets.only(left: 10, top: 30, bottom: 5),
                   ),
                   Container(
                     child: Theme(
-                      data: Theme.of(context).copyWith(primaryColor: ColorConstants.primaryColor),
+                      data: Theme.of(context)
+                          .copyWith(primaryColor: ColorConstants.primaryColor),
                       child: TextField(
                         decoration: InputDecoration(
                           hintText: 'Fun, like travel and play PES...',
@@ -290,7 +307,8 @@ class SettingsPageStateState extends State<SettingsPageState> {
                     style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(ColorConstants.primaryColor),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                        ColorConstants.primaryColor),
                     padding: MaterialStateProperty.all<EdgeInsets>(
                       EdgeInsets.fromLTRB(30, 10, 30, 10),
                     ),

@@ -50,6 +50,128 @@ class HomePageState extends State<HomePage> {
     PopupChoices(title: 'Log out', icon: Icons.exit_to_app),
   ];
 
+  Future<void> handleSignOut() async {
+    authProvider.handleSignOut();
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => LoginPage()),
+      (Route<dynamic> route) => false,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      drawer: navDrawer(),
+      appBar: AppBar(
+        backgroundColor: ColorConstants.primaryColor,
+        title: Text(
+          AppConstants.homeTitle,
+          style: TextStyle(color: Colors.white),
+        ),
+        centerTitle: true,
+        actions: <Widget>[buildPopupMenu()],
+      ),
+      body: WillPopScope(
+        child: Stack(
+          children: <Widget>[
+            // List
+            Column(
+              children: [
+                buildSearchBar(),
+                Expanded(
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: homeProvider.getStreamFireStore(
+                        FirestoreConstants.pathUserCollection,
+                        _limit,
+                        _textSearch),
+                    builder: (BuildContext context,
+                        AsyncSnapshot<QuerySnapshot> snapshot) {
+                      if (snapshot.hasData) {
+                        if ((snapshot.data?.docs.length ?? 0) > 0) {
+                          return ListView.builder(
+                            padding: EdgeInsets.all(10),
+                            itemBuilder: (context, index) =>
+                                buildItem(context, snapshot.data?.docs[index]),
+                            itemCount: snapshot.data?.docs.length,
+                            controller: listScrollController,
+                          );
+                        } else {
+                          return Center(
+                            child: Text("No users"),
+                          );
+                        }
+                      } else {
+                        return Center(
+                          child: CircularProgressIndicator(
+                            color: ColorConstants.themeColor,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+
+            // Loading
+            Positioned(
+              child: isLoading ? LoadingView() : SizedBox.shrink(),
+            )
+          ],
+        ),
+        onWillPop: onBackPress,
+      ),
+    );
+  }
+
+  Widget navDrawer() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          DrawerHeader(
+            padding: EdgeInsets.only(left: 30, right: 30),
+            child: Text(""),
+            decoration: BoxDecoration(
+                color: Colors.green,
+                image: DecorationImage(
+                    fit: BoxFit.scaleDown,
+                    image: AssetImage('images/app_logo.png'))),
+          ),
+          ListTile(
+            leading: Icon(Icons.catching_pokemon),
+            title: Text('My Pets'),
+            onTap: () => {},
+          ),
+          ListTile(
+            leading: Icon(Icons.verified_user),
+            title: Text('Profile'),
+            onTap: () => {Navigator.of(context).pop()},
+          ),
+          ListTile(
+            leading: Icon(Icons.chat),
+            title: Text('Chat'),
+            onTap: () => {Navigator.of(context).pop()},
+          ),
+          ListTile(
+            leading: Icon(Icons.settings),
+            title: Text('Settings'),
+            onTap: () => {
+              Navigator.of(context).pop(),
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => SettingsPage()))
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.exit_to_app),
+            title: Text('Logout'),
+            onTap: () => {handleSignOut()},
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -131,8 +253,8 @@ class HomePageState extends State<HomePage> {
         AndroidNotificationDetails(
       ///Platform.isAndroid ? 'com.example.pawmark_android' : 'com.duytq.flutterchatdemo',
       'com.example.pawmark_android',
-      'Flutter chat demo',
-      'your channel description',
+      'PawMark',
+      'channel description',
       playSound: true,
       enableVibration: true,
       importance: Importance.max,
@@ -252,78 +374,6 @@ class HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> handleSignOut() async {
-    authProvider.handleSignOut();
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => LoginPage()),
-      (Route<dynamic> route) => false,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          AppConstants.homeTitle,
-          style: TextStyle(color: ColorConstants.primaryColor),
-        ),
-        centerTitle: true,
-        actions: <Widget>[buildPopupMenu()],
-      ),
-      body: WillPopScope(
-        child: Stack(
-          children: <Widget>[
-            // List
-            Column(
-              children: [
-                buildSearchBar(),
-                Expanded(
-                  child: StreamBuilder<QuerySnapshot>(
-                    stream: homeProvider.getStreamFireStore(
-                        FirestoreConstants.pathUserCollection,
-                        _limit,
-                        _textSearch),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<QuerySnapshot> snapshot) {
-                      if (snapshot.hasData) {
-                        if ((snapshot.data?.docs.length ?? 0) > 0) {
-                          return ListView.builder(
-                            padding: EdgeInsets.all(10),
-                            itemBuilder: (context, index) =>
-                                buildItem(context, snapshot.data?.docs[index]),
-                            itemCount: snapshot.data?.docs.length,
-                            controller: listScrollController,
-                          );
-                        } else {
-                          return Center(
-                            child: Text("No users"),
-                          );
-                        }
-                      } else {
-                        return Center(
-                          child: CircularProgressIndicator(
-                            color: ColorConstants.themeColor,
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-
-            // Loading
-            Positioned(
-              child: isLoading ? LoadingView() : SizedBox.shrink(),
-            )
-          ],
-        ),
-        onWillPop: onBackPress,
-      ),
-    );
-  }
-
   Widget buildSearchBar() {
     return Container(
       height: 40,
@@ -416,7 +466,9 @@ class HomePageState extends State<HomePage> {
   Widget buildItem(BuildContext context, DocumentSnapshot? document) {
     if (document != null) {
       UserChat userChat = UserChat.fromDocument(document);
-      if (userChat.id == currentUserId) {
+      if (userChat.isDoctor.isEmpty ||
+          userChat.isDoctor == "false" ||
+          userChat.id == currentUserId) {
         return SizedBox.shrink();
       } else {
         return Container(
@@ -456,10 +508,10 @@ class HomePageState extends State<HomePage> {
                             );
                           },
                         )
-                      : Icon(
-                          Icons.account_circle,
-                          size: 50,
-                          color: ColorConstants.greyColor,
+                      : Image.asset(
+                          'images/doc1.jpg',
+                          width: 50,
+                          height: 50,
                         ),
                   borderRadius: BorderRadius.all(Radius.circular(25)),
                   clipBehavior: Clip.hardEdge,
@@ -470,7 +522,7 @@ class HomePageState extends State<HomePage> {
                       children: <Widget>[
                         Container(
                           child: Text(
-                            'Nickname: ${userChat.nickname}',
+                            'Name: ${userChat.nickname}',
                             maxLines: 1,
                             style:
                                 TextStyle(color: ColorConstants.primaryColor),
