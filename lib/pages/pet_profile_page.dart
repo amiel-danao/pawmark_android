@@ -13,29 +13,29 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-class SettingsPage extends StatelessWidget {
+class PetProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: ColorConstants.primaryColor,
         title: Text(
-          AppConstants.settingsTitle,
+          AppConstants.petProfileTitle,
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
       ),
-      body: SettingsPageState(),
+      body: PetProfilePageState(),
     );
   }
 }
 
-class SettingsPageState extends StatefulWidget {
+class PetProfilePageState extends StatefulWidget {
   @override
-  State createState() => SettingsPageStateState();
+  State createState() => PetProfilePageStateState();
 }
 
-class SettingsPageStateState extends State<SettingsPageState> {
+class PetProfilePageStateState extends State<PetProfilePageState> {
   TextEditingController? controllerNickname;
   TextEditingController? controllerAboutMe;
 

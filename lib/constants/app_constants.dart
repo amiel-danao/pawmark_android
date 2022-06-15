@@ -4,4 +4,6 @@ class AppConstants {
   static const homeTitle = "PawMark - Home";
   static const settingsTitle = "Settings";
   static const fullPhotoTitle = "Full Photo";
+  static const petsPageTitle = "My Pets";
+  static const petProfileTitle = "Edit Pet";
 }

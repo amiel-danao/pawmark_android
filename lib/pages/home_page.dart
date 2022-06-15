@@ -16,6 +16,7 @@ import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../widgets/widgets.dart';
 import 'pages.dart';
+import 'pet_list_page.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({Key? key}) : super(key: key);
@@ -141,7 +142,10 @@ class HomePageState extends State<HomePage> {
           ListTile(
             leading: Icon(Icons.catching_pokemon),
             title: Text('My Pets'),
-            onTap: () => {},
+            onTap: () => {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => PetListPage()))
+            },
           ),
           ListTile(
             leading: Icon(Icons.verified_user),
