@@ -8,6 +8,9 @@ class Pet {
   final String allergies;
   final String existingConditions;
   final String breed;
+  final String species;
+  final double height;
+  final String image;
 
   Pet(
       {required this.id,
@@ -18,7 +21,10 @@ class Pet {
       required this.weight,
       required this.allergies,
       required this.existingConditions,
-      required this.breed});
+      required this.breed,
+      required this.species,
+      required this.height,
+      required this.image});
 
   factory Pet.fromJson(Map<String, dynamic> json) {
     return Pet(
@@ -30,7 +36,10 @@ class Pet {
         weight: double.parse(json['weight'].toString()),
         allergies: json['allergies'],
         existingConditions: json['existing_conditions'],
-        breed: json['breed']);
+        breed: json['breed'],
+        species: json['species'],
+        height: double.parse(json['height'].toString()),
+        image: json['image']);
   }
 
   Map<String, dynamic> toJson() => {
@@ -42,6 +51,9 @@ class Pet {
         "weight": weight.toString(),
         "allergies": allergies,
         "existing_conditions": existingConditions,
-        "breed": breed
+        "breed": breed,
+        "species": species,
+        "height": height,
+        "image": image
       };
 }

@@ -251,7 +251,7 @@ class SettingsPageStateState extends State<SettingsPageState> {
                           .copyWith(primaryColor: ColorConstants.primaryColor),
                       child: TextField(
                         decoration: InputDecoration(
-                          hintText: 'Sweetie',
+                          hintText: 'Nickname',
                           contentPadding: EdgeInsets.all(5),
                           hintStyle: TextStyle(color: ColorConstants.greyColor),
                         ),
