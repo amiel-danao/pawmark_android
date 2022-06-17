@@ -1,59 +1,64 @@
 class Pet {
-  final int id;
-  final String name;
-  final DateTime dateOfBirth;
-  final int petAge;
-  final String gender;
-  final double weight;
-  final String allergies;
-  final String existingConditions;
-  final String breed;
-  final String species;
-  final double height;
-  final String image;
+  int id;
+  String name;
+  DateTime dateOfBirth;
+  String gender;
+  double weight;
+  String allergies;
+  String existingConditions;
+  String breed;
+  String species;
+  double height;
+  String image;
+  String owner;
 
   Pet(
-      {required this.id,
+      {this.id = -1,
       required this.name,
       required this.dateOfBirth,
-      required this.petAge,
-      required this.gender,
-      required this.weight,
-      required this.allergies,
-      required this.existingConditions,
-      required this.breed,
+      this.gender = "Male",
+      this.weight = 1.0,
+      this.height = 1.0,
       required this.species,
-      required this.height,
-      required this.image});
+      this.allergies = "",
+      this.existingConditions = "",
+      this.image = "",
+      required this.owner,
+      this.breed = "NA"});
 
   factory Pet.fromJson(Map<String, dynamic> json) {
     return Pet(
         id: json['id'],
         name: json['name'],
         dateOfBirth: DateTime.parse(json['date_of_birth']),
-        petAge: json['pet_age'],
         gender: json['gender'],
         weight: double.parse(json['weight'].toString()),
+        height: double.parse(json['height'].toString()),
+        species: json.containsKey('species') ? json['species'] : '',
         allergies: json['allergies'],
         existingConditions: json['existing_conditions'],
-        breed: json['breed'],
-        species: json['species'],
-        height: double.parse(json['height'].toString()),
-        image: json['image']);
+        image: json['image'] == null ? '' : json['image'],
+        breed: json['breed'] == null ? '' : json['breed'],
+        owner: json['owner']);
   }
 
   Map<String, dynamic> toJson() => {
         "id": id,
         "name": name,
         "date_of_birth": dateOfBirth.toString(),
-        "pet_age": petAge,
         "gender": gender,
         "weight": weight.toString(),
+        "height": height.toString(),
         "allergies": allergies,
         "existing_conditions": existingConditions,
-        "breed": breed,
         "species": species,
-        "height": height,
-        "image": image
+        "image": image,
+        "breed": breed,
+        "owner": owner
       };
+
+  static Pet getNewInstance({required owner}) {
+    return Pet(
+        name: "", dateOfBirth: DateTime.now(), owner: owner, species: 'Cat');
+  }
 }

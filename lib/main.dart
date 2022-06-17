@@ -62,6 +62,21 @@ class MyApp extends StatelessWidget {
         title: AppConstants.appTitle,
         theme: ThemeData(
           primaryColor: ColorConstants.themeColor,
+          secondaryHeaderColor: Colors.cyan,
+          backgroundColor: Colors.grey,
+          textTheme: const TextTheme(
+              headline1: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
+              headline6: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+              bodyText1: TextStyle(
+                fontFamily: 'Poppins',
+                color: Colors.grey,
+              ),
+              bodyText2: TextStyle(fontSize: 14.0, fontFamily: 'Hind'),
+              subtitle2: TextStyle(
+                fontFamily: 'Poppins',
+                color: Colors.white,
+                fontSize: 22,
+              )),
         ),
         home: SplashPage(),
         debugShowCheckedModeBanner: false,

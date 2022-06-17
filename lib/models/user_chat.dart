@@ -15,7 +15,7 @@ class UserChat {
       required this.photoUrl,
       required this.nickname,
       required this.aboutMe,
-      required this.isDoctor});
+      this.isDoctor = "false"});
 
   Map<String, String> toJson() {
     return {

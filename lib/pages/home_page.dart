@@ -2,14 +2,14 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+//import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_demo/constants/app_constants.dart';
 import 'package:flutter_chat_demo/constants/constants.dart';
 import 'package:flutter_chat_demo/providers/providers.dart';
 import 'package:flutter_chat_demo/utils/utils.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+//import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
@@ -28,7 +28,7 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   HomePageState({Key? key});
 
-  final FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
+  //final FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
   final GoogleSignIn googleSignIn = GoogleSignIn();
@@ -67,7 +67,10 @@ class HomePageState extends State<HomePage> {
         backgroundColor: ColorConstants.primaryColor,
         title: Text(
           AppConstants.homeTitle,
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+          ),
         ),
         centerTitle: true,
         actions: <Widget>[buildPopupMenu()],
@@ -155,7 +158,10 @@ class HomePageState extends State<HomePage> {
           ListTile(
             leading: Icon(Icons.chat),
             title: Text('Chat'),
-            onTap: () => {Navigator.of(context).pop()},
+            onTap: () => {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => HomePage()))
+            },
           ),
           ListTile(
             leading: Icon(Icons.settings),
@@ -190,7 +196,8 @@ class HomePageState extends State<HomePage> {
         (Route<dynamic> route) => false,
       );
     }
-    registerNotification();
+
+    ///registerNotification();
     configLocalNotification();
     listScrollController.addListener(scrollListener);
   }
@@ -201,27 +208,27 @@ class HomePageState extends State<HomePage> {
     btnClearController.close();
   }
 
-  void registerNotification() {
-    firebaseMessaging.requestPermission();
+  // void registerNotification() {
+  //   firebaseMessaging.requestPermission();
 
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('onMessage: $message');
-      if (message.notification != null) {
-        showNotification(message.notification!);
-      }
-      return;
-    });
+  //   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+  //     print('onMessage: $message');
+  //     if (message.notification != null) {
+  //       showNotification(message.notification!);
+  //     }
+  //     return;
+  //   });
 
-    firebaseMessaging.getToken().then((token) {
-      print('push token: $token');
-      if (token != null) {
-        homeProvider.updateDataFirestore(FirestoreConstants.pathUserCollection,
-            currentUserId, {'pushToken': token});
-      }
-    }).catchError((err) {
-      Fluttertoast.showToast(msg: err.message.toString());
-    });
-  }
+  //   firebaseMessaging.getToken().then((token) {
+  //     print('push token: $token');
+  //     if (token != null) {
+  //       homeProvider.updateDataFirestore(FirestoreConstants.pathUserCollection,
+  //           currentUserId, {'pushToken': token});
+  //     }
+  //   }).catchError((err) {
+  //     Fluttertoast.showToast(msg: err.message.toString());
+  //   });
+  // }
 
   void configLocalNotification() {
     AndroidInitializationSettings initializationSettingsAndroid =
@@ -252,34 +259,34 @@ class HomePageState extends State<HomePage> {
     }
   }
 
-  void showNotification(RemoteNotification remoteNotification) async {
-    AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-      ///Platform.isAndroid ? 'com.example.pawmark_android' : 'com.duytq.flutterchatdemo',
-      'com.example.pawmark_android',
-      'PawMark',
-      'channel description',
-      playSound: true,
-      enableVibration: true,
-      importance: Importance.max,
-      priority: Priority.high,
-    );
-    IOSNotificationDetails iOSPlatformChannelSpecifics =
-        IOSNotificationDetails();
-    NotificationDetails platformChannelSpecifics = NotificationDetails(
-        android: androidPlatformChannelSpecifics,
-        iOS: iOSPlatformChannelSpecifics);
+  // void showNotification(RemoteNotification remoteNotification) async {
+  //   AndroidNotificationDetails androidPlatformChannelSpecifics =
+  //       AndroidNotificationDetails(
+  //     ///Platform.isAndroid ? 'com.example.pawmark_android' : 'com.duytq.flutterchatdemo',
+  //     'com.example.pawmark_android',
+  //     'PawMark',
+  //     'channel description',
+  //     playSound: true,
+  //     enableVibration: true,
+  //     importance: Importance.max,
+  //     priority: Priority.high,
+  //   );
+  //   IOSNotificationDetails iOSPlatformChannelSpecifics =
+  //       IOSNotificationDetails();
+  //   NotificationDetails platformChannelSpecifics = NotificationDetails(
+  //       android: androidPlatformChannelSpecifics,
+  //       iOS: iOSPlatformChannelSpecifics);
 
-    print(remoteNotification);
+  //   print(remoteNotification);
 
-    await flutterLocalNotificationsPlugin.show(
-      0,
-      remoteNotification.title,
-      remoteNotification.body,
-      platformChannelSpecifics,
-      payload: null,
-    );
-  }
+  //   await flutterLocalNotificationsPlugin.show(
+  //     0,
+  //     remoteNotification.title,
+  //     remoteNotification.body,
+  //     platformChannelSpecifics,
+  //     payload: null,
+  //   );
+  // }
 
   Future<bool> onBackPress() {
     openDialog();

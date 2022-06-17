@@ -1,108 +1,164 @@
-import '../backend/firebase_storage/storage.dart';
-import '../flutter_flow/flutter_flow_drop_down.dart';
-import '../flutter_flow/flutter_flow_icon_button.dart';
-import '../flutter_flow/flutter_flow_theme.dart';
-import '../flutter_flow/flutter_flow_util.dart';
-import '../flutter_flow/flutter_flow_widgets.dart';
-import '../flutter_flow/upload_media.dart';
-import '../custom_code/actions/index.dart' as actions;
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:page_transition/page_transition.dart';
+import 'package:http/http.dart' as http;
+import '../constants/app_constants.dart';
+import '../constants/color_constants.dart';
+import '../env.sample.dart';
+import '../models/breed.dart';
+import '../models/pet.dart';
+import '../pages/pet_list_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
-class PetProfilePageWidget extends StatefulWidget {
-  const PetProfilePageWidget({Key key}) : super(key: key);
+class PetProfilePage extends StatefulWidget {
+  final Pet petData;
+  const PetProfilePage({Key? key, required this.petData}) : super(key: key);
 
   @override
-  _PetProfilePageWidgetState createState() => _PetProfilePageWidgetState();
+  _PetProfilePageState createState() => _PetProfilePageState();
 }
 
-class _PetProfilePageWidgetState extends State<PetProfilePageWidget> {
-  DateTime datePicked;
-  TextEditingController dateOfBirthController;
+class _PetProfilePageState extends State<PetProfilePage> {
   String uploadedFileUrl = '';
-  TextEditingController yourNameController;
-  String genderValue;
-  String speciesValue;
-  String breedValue;
-  TextEditingController weightController;
-  TextEditingController heightController;
-  TextEditingController allergiesController;
-  TextEditingController existingConditionsController;
+  late TextEditingController nameController;
+  late TextEditingController dateOfBirthController;
+  late TextEditingController genderController;
+  late TextEditingController speciesController;
+  late TextEditingController breedController;
+  late TextEditingController weightController;
+  late TextEditingController heightController;
+  late TextEditingController allergiesController;
+  late TextEditingController existingConditionsController;
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  // late Future<List<Breed>> catBreeds;
+  // late Future<List<Breed>> dogBreeds;
+  final DateFormat formatter = DateFormat('yyyy-MM-dd');
+
+  late StreamController<List<Breed>> breedStream;
 
   @override
   void initState() {
     super.initState();
-    allergiesController = TextEditingController();
-    dateOfBirthController = TextEditingController();
-    yourNameController = TextEditingController();
-    weightController = TextEditingController();
-    heightController = TextEditingController();
-    existingConditionsController = TextEditingController();
+    print(widget.petData.toString());
+    dateOfBirthController = TextEditingController(
+        text: formatter.format(widget.petData.dateOfBirth));
+    nameController = TextEditingController(text: widget.petData.name);
+    genderController = TextEditingController(text: widget.petData.gender);
+    speciesController = TextEditingController(text: widget.petData.species);
+    breedController = TextEditingController(text: widget.petData.breed);
+    weightController =
+        TextEditingController(text: widget.petData.weight.toString());
+    heightController =
+        TextEditingController(text: widget.petData.height.toString());
+    existingConditionsController =
+        TextEditingController(text: widget.petData.existingConditions);
+    allergiesController = TextEditingController(text: widget.petData.allergies);
+
+    breedStream = StreamController<List<Breed>>();
+
+    // catBreeds = getBreeds('cat');
+    // dogBreeds = getBreeds('dog');
+    loadBreeds(widget.petData.species);
+    print(widget.petData.toJson());
+  }
+
+  void loadBreeds(species) async {
+    print("start getBreeds");
+    Uri uri = Uri.parse(
+        '${Env.URL_PREFIX}/api/breedlist?species=${species}&format=json');
+    final response = await http.get(uri);
+
+    final items = json.decode(response.body).cast<Map<String, dynamic>>();
+    List<Breed> breeds = items.map<Breed>((json) {
+      return Breed.fromJson(json);
+    }).toList();
+
+    breedStream.add(breeds);
+  }
+
+  // Future<List<Breed>> getBreeds(species) async {
+  //   print("start getBreeds");
+  //   Uri uri =
+  //       Uri.parse('${Env.URL_PREFIX}/api/breedlist?species=cat&format=json');
+  //   final response = await http.get(uri);
+
+  //   final items = json.decode(response.body).cast<Map<String, dynamic>>();
+  //   List<Breed> breeds = items.map<Breed>((json) {
+  //     return Breed.fromJson(json);
+  //   }).toList();
+
+  //   print(items.toString());
+  //   return breeds;
+  // }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: widget.petData.dateOfBirth,
+        firstDate: DateTime(2015, 8),
+        lastDate: DateTime(2101));
+    if (picked != null && picked != widget.petData.dateOfBirth) {
+      setState(() {
+        widget.petData.dateOfBirth = picked;
+        dateOfBirthController.text = formatter.format(picked);
+      });
+    }
+  }
+
+  Future<http.Response> savePetData() {
+    String urlCommand = '${Env.URL_PREFIX}/api/petupdate';
+    if (widget.petData.id != -1) {
+      urlCommand = '${Env.URL_PREFIX}/api/petdetails/${widget.petData.id}';
+
+      return http.put(
+        Uri.parse(urlCommand),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(widget.petData.toJson()),
+      );
+    }
+
+    return http.post(
+      Uri.parse(urlCommand),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(widget.petData.toJson()),
+    );
+  }
+
+  Future<http.Response> deletePet() {
+    String urlCommand = '${Env.URL_PREFIX}/api/petupdate';
+
+    urlCommand = '${Env.URL_PREFIX}/api/petdetails/${widget.petData.id}';
+
+    return http.delete(Uri.parse(urlCommand), headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: scaffoldKey,
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(100),
-        child: AppBar(
-          backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
-          automaticallyImplyLeading: false,
-          flexibleSpace: Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 14),
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 8),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Padding(
-                        padding: EdgeInsetsDirectional.fromSTEB(12, 0, 0, 0),
-                        child: FlutterFlowIconButton(
-                          borderColor: Colors.transparent,
-                          borderRadius: 30,
-                          borderWidth: 1,
-                          buttonSize: 50,
-                          icon: Icon(
-                            Icons.arrow_back_rounded,
-                            color: FlutterFlowTheme.of(context).primaryText,
-                            size: 30,
-                          ),
-                          onPressed: () async {
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(24, 0, 0, 0),
-                  child: Text(
-                    'Edit Pet Info',
-                    style: FlutterFlowTheme.of(context).title2.override(
-                          fontFamily: 'Poppins',
-                          color: FlutterFlowTheme.of(context).primaryText,
-                          fontSize: 22,
-                        ),
-                  ),
-                ),
-              ],
-            ),
+      appBar: AppBar(
+        backgroundColor: ColorConstants.primaryColor,
+        title: Text(
+          AppConstants.petProfileTitle,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
           ),
-          actions: [],
-          elevation: 0,
         ),
+        centerTitle: false,
       ),
-      backgroundColor: FlutterFlowTheme.of(context).secondaryBackground,
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.max,
@@ -132,9 +188,14 @@ class _PetProfilePageWidgetState extends State<PetProfilePageWidget> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                               ),
-                              child: Image.network(
-                                'https://images.unsplash.com/photo-1536164261511-3a17e671d380?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=630&q=80',
-                                fit: BoxFit.fitWidth,
+                              child: CachedNetworkImage(
+                                imageUrl: "",
+                                placeholder: (context, url) => Image.asset(
+                                    'images/app_icon.png',
+                                    fit: BoxFit.fitWidth),
+                                errorWidget: (context, url, error) =>
+                                    Image.asset('images/app_icon.png',
+                                        fit: BoxFit.fitWidth),
                               ),
                             ),
                           ),
@@ -147,100 +208,40 @@ class _PetProfilePageWidgetState extends State<PetProfilePageWidget> {
                         mainAxisSize: MainAxisSize.max,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          FFButtonWidget(
-                            onPressed: () async {
-                              final selectedMedia = await selectMedia(
-                                mediaSource: MediaSource.photoGallery,
-                                multiImage: false,
-                              );
-                              if (selectedMedia != null &&
-                                  selectedMedia.every((m) => validateFileFormat(
-                                      m.storagePath, context))) {
-                                showUploadMessage(
-                                  context,
-                                  'Uploading file...',
-                                  showLoading: true,
-                                );
-                                final downloadUrls = (await Future.wait(
-                                        selectedMedia.map((m) async =>
-                                            await uploadData(
-                                                m.storagePath, m.bytes))))
-                                    .where((u) => u != null)
-                                    .toList();
-                                ScaffoldMessenger.of(context)
-                                    .hideCurrentSnackBar();
-                                if (downloadUrls != null &&
-                                    downloadUrls.length ==
-                                        selectedMedia.length) {
-                                  setState(() =>
-                                      uploadedFileUrl = downloadUrls.first);
-                                  showUploadMessage(
-                                    context,
-                                    'Success!',
-                                  );
-                                } else {
-                                  showUploadMessage(
-                                    context,
-                                    'Failed to upload media',
-                                  );
-                                  return;
-                                }
-                              }
-                            },
-                            text: 'Change Photo',
-                            options: FFButtonOptions(
-                              width: 130,
-                              height: 40,
-                              color: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
-                              textStyle: FlutterFlowTheme.of(context)
-                                  .bodyText1
-                                  .override(
-                                    fontFamily: 'Lexend Deca',
-                                    color: FlutterFlowTheme.of(context)
-                                        .primaryColor,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.normal,
-                                  ),
-                              elevation: 1,
-                              borderSide: BorderSide(
-                                color: Colors.transparent,
-                                width: 1,
-                              ),
-                              borderRadius: 8,
-                            ),
-                          ),
+                          TextButton(
+                              onPressed: () {
+                                print("updload photo");
+                              },
+                              child: Text('Change Photo')),
                         ],
                       ),
                     ),
                     Padding(
                       padding: EdgeInsetsDirectional.fromSTEB(20, 0, 20, 16),
                       child: TextFormField(
-                        controller: yourNameController,
+                        controller: nameController,
+                        onChanged: (val) => widget.petData.name = val,
                         obscureText: false,
                         decoration: InputDecoration(
                           labelText: 'Name',
-                          labelStyle: FlutterFlowTheme.of(context).bodyText2,
-                          hintStyle: FlutterFlowTheme.of(context).bodyText2,
+                          labelStyle: Theme.of(context).textTheme.bodyText2,
+                          hintStyle: Theme.of(context).textTheme.bodyText2,
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
+                              color: Theme.of(context).backgroundColor,
                               width: 2,
                             ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
+                              color: Theme.of(context).backgroundColor,
                               width: 2,
                             ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           filled: true,
-                          fillColor:
-                              FlutterFlowTheme.of(context).secondaryBackground,
+                          fillColor: Colors.white,
                           contentPadding:
                               EdgeInsetsDirectional.fromSTEB(20, 24, 0, 24),
                           suffixIcon: Icon(
@@ -249,48 +250,37 @@ class _PetProfilePageWidgetState extends State<PetProfilePageWidget> {
                             size: 22,
                           ),
                         ),
-                        style: FlutterFlowTheme.of(context).bodyText1,
+                        style: Theme.of(context).textTheme.bodyText1,
                       ),
                     ),
                     Padding(
                       padding: EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
                       child: TextFormField(
                         controller: dateOfBirthController,
-                        onFieldSubmitted: (_) async {
-                          await DatePicker.showDatePicker(
-                            context,
-                            showTitleActions: true,
-                            onConfirm: (date) {
-                              setState(() => datePicked = date);
-                            },
-                            currentTime: getCurrentTimestamp,
-                            minTime: DateTime(0, 0, 0),
-                          );
-                        },
+                        onTap: () => _selectDate(context),
+                        //onFieldSubmitted: ()=> _selectDate(context),
                         obscureText: false,
+                        readOnly: true,
                         decoration: InputDecoration(
                           labelText: 'Date of Birth',
-                          labelStyle: FlutterFlowTheme.of(context).bodyText2,
-                          hintStyle: FlutterFlowTheme.of(context).bodyText2,
+                          labelStyle: Theme.of(context).textTheme.bodyText2,
+                          hintStyle: Theme.of(context).textTheme.bodyText2,
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
+                              color: Theme.of(context).backgroundColor,
                               width: 2,
                             ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
+                              color: Theme.of(context).backgroundColor,
                               width: 2,
                             ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           filled: true,
-                          fillColor:
-                              FlutterFlowTheme.of(context).secondaryBackground,
+                          fillColor: Colors.white,
                           contentPadding:
                               EdgeInsetsDirectional.fromSTEB(20, 24, 0, 24),
                           suffixIcon: Icon(
@@ -299,7 +289,7 @@ class _PetProfilePageWidgetState extends State<PetProfilePageWidget> {
                             size: 22,
                           ),
                         ),
-                        style: FlutterFlowTheme.of(context).bodyText1,
+                        style: Theme.of(context).textTheme.bodyText1,
                         keyboardType: TextInputType.datetime,
                       ),
                     ),
@@ -311,33 +301,41 @@ class _PetProfilePageWidgetState extends State<PetProfilePageWidget> {
                           child: Padding(
                             padding:
                                 EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
-                            child: FlutterFlowDropDown(
-                              options: ['Male', 'Female'],
-                              onChanged: (val) =>
-                                  setState(() => genderValue = val),
-                              width: 180,
-                              height: 40,
-                              textStyle: FlutterFlowTheme.of(context)
-                                  .bodyText1
-                                  .override(
-                                    fontFamily: 'Poppins',
-                                    color: FlutterFlowTheme.of(context)
-                                        .secondaryText,
-                                  ),
-                              hintText: 'Gender',
-                              icon: FaIcon(
-                                FontAwesomeIcons.venusMars,
-                              ),
-                              fillColor: Colors.white,
-                              elevation: 2,
-                              borderColor:
-                                  FlutterFlowTheme.of(context).secondaryText,
-                              borderWidth: 1,
-                              borderRadius: 2,
-                              margin: EdgeInsetsDirectional.fromSTEB(
-                                  12, 12, 12, 12),
-                              hidesUnderline: true,
-                            ),
+                            child: DropdownButtonFormField(
+                                value: widget.petData.gender,
+                                items: ['Male', 'Female'].map((String items) {
+                                  return DropdownMenuItem(
+                                    value: items,
+                                    child: Text(items),
+                                  );
+                                }).toList(),
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    widget.petData.gender = newValue!;
+                                  });
+                                },
+                                hint: Text('Gender'),
+                                isExpanded: true,
+                                decoration: InputDecoration(
+                                    suffixIcon: FaIcon(
+                                      FontAwesomeIcons.venusMars,
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            Theme.of(context).backgroundColor,
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            Theme.of(context).backgroundColor,
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ))),
                           ),
                         ),
                       ],
@@ -350,33 +348,45 @@ class _PetProfilePageWidgetState extends State<PetProfilePageWidget> {
                           child: Padding(
                             padding:
                                 EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
-                            child: FlutterFlowDropDown(
-                              options: ['Cat', 'Docg'],
-                              onChanged: (val) =>
-                                  setState(() => speciesValue = val),
-                              width: 180,
-                              height: 40,
-                              textStyle: FlutterFlowTheme.of(context)
-                                  .bodyText1
-                                  .override(
-                                    fontFamily: 'Poppins',
-                                    color: FlutterFlowTheme.of(context)
-                                        .secondaryText,
-                                  ),
-                              hintText: 'Species',
-                              icon: FaIcon(
-                                FontAwesomeIcons.shapes,
-                              ),
-                              fillColor: Colors.white,
-                              elevation: 2,
-                              borderColor:
-                                  FlutterFlowTheme.of(context).secondaryText,
-                              borderWidth: 1,
-                              borderRadius: 2,
-                              margin: EdgeInsetsDirectional.fromSTEB(
-                                  12, 12, 12, 12),
-                              hidesUnderline: true,
-                            ),
+                            child: DropdownButtonFormField(
+                                isExpanded: true,
+                                value: widget.petData.species,
+                                items: ['Cat', 'Dog'].map((String items) {
+                                  return DropdownMenuItem(
+                                    value: items,
+                                    child: Text(items),
+                                  );
+                                }).toList(),
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    if (newValue != widget.petData.species) {
+                                      widget.petData.breed = "";
+                                    }
+                                    loadBreeds(newValue);
+                                    widget.petData.species = newValue!;
+                                  });
+                                },
+                                hint: Text('Species'),
+                                decoration: InputDecoration(
+                                    suffixIcon: FaIcon(
+                                      FontAwesomeIcons.shapes,
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            Theme.of(context).backgroundColor,
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color:
+                                            Theme.of(context).backgroundColor,
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ))),
                           ),
                         ),
                       ],
@@ -387,110 +397,145 @@ class _PetProfilePageWidgetState extends State<PetProfilePageWidget> {
                       children: [
                         Expanded(
                           child: Padding(
-                            padding:
-                                EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
-                            child: FlutterFlowDropDown(
-                              options: ['Abyssinian'],
-                              onChanged: (val) =>
-                                  setState(() => breedValue = val),
-                              width: 180,
-                              height: 40,
-                              textStyle: FlutterFlowTheme.of(context)
-                                  .bodyText1
-                                  .override(
-                                    fontFamily: 'Poppins',
-                                    color: FlutterFlowTheme.of(context)
-                                        .secondaryText,
-                                  ),
-                              hintText: 'Breed',
-                              icon: Icon(
-                                Icons.merge_type_sharp,
-                                size: 15,
-                              ),
-                              fillColor: Colors.white,
-                              elevation: 2,
-                              borderColor:
-                                  FlutterFlowTheme.of(context).secondaryText,
-                              borderWidth: 1,
-                              borderRadius: 2,
-                              margin: EdgeInsetsDirectional.fromSTEB(
-                                  12, 12, 12, 12),
-                              hidesUnderline: true,
-                            ),
-                          ),
+                              padding:
+                                  EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
+                              child: //FutureBuilder(
+                                  //future: catBreeds,
+                                  StreamBuilder(
+                                      stream: breedStream.stream,
+                                      builder: (BuildContext context,
+                                          AsyncSnapshot snapshot) {
+                                        if (snapshot.hasData) {
+                                          return DropdownButtonFormField(
+                                            hint: Text('Select Breed'),
+                                            isExpanded: true,
+                                            decoration: InputDecoration(
+                                                suffixIcon: Icon(
+                                                  Icons.merge_type_sharp,
+                                                  size: 15,
+                                                ),
+                                                enabledBorder:
+                                                    OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                    color: Theme.of(context)
+                                                        .backgroundColor,
+                                                    width: 2,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                focusedBorder:
+                                                    OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                    color: Theme.of(context)
+                                                        .backgroundColor,
+                                                    width: 2,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                )),
+                                            items: snapshot.data
+                                                .map<DropdownMenuItem<String>>(
+                                                    (Breed breed) {
+                                              return DropdownMenuItem<String>(
+                                                value: breed.breedName,
+                                                child: Text(breed.breedName,
+                                                    style: TextStyle(
+                                                        color: Color.fromRGBO(
+                                                            58, 66, 46, .9))),
+                                              );
+                                            }).toList(),
+                                            onChanged: (String? newValue) {
+                                              setState(() => {
+                                                    widget.petData.breed =
+                                                        newValue!
+                                                  });
+                                            },
+                                          );
+                                        }
+                                        return CircularProgressIndicator();
+                                      })),
                         ),
                       ],
                     ),
                     Padding(
                       padding: EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
                       child: TextFormField(
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            widget.petData.weight = double.parse(newValue!);
+                            weightController.text = newValue;
+                          });
+                        },
                         controller: weightController,
                         obscureText: false,
                         decoration: InputDecoration(
+                          suffixText: 'kg',
                           labelText: 'Weight',
-                          labelStyle: FlutterFlowTheme.of(context).bodyText2,
+                          labelStyle: Theme.of(context).textTheme.bodyText2,
                           hintText: 'kg',
-                          hintStyle: FlutterFlowTheme.of(context).bodyText2,
+                          hintStyle: Theme.of(context).textTheme.bodyText2,
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
+                              color: Theme.of(context).backgroundColor,
                               width: 2,
                             ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
+                              color: Theme.of(context).backgroundColor,
                               width: 2,
                             ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           filled: true,
-                          fillColor:
-                              FlutterFlowTheme.of(context).secondaryBackground,
+                          fillColor: Colors.white,
                           contentPadding:
                               EdgeInsetsDirectional.fromSTEB(20, 24, 0, 24),
                           suffixIcon: FaIcon(
-                            FontAwesomeIcons.weight,
+                            FontAwesomeIcons.weightScale,
                             color: Color(0xFF757575),
                             size: 22,
                           ),
                         ),
-                        style: FlutterFlowTheme.of(context).bodyText1,
+                        style: Theme.of(context).textTheme.bodyText1,
                         keyboardType: TextInputType.number,
                       ),
                     ),
                     Padding(
                       padding: EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
                       child: TextFormField(
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            widget.petData.height = double.parse(newValue!);
+                            heightController.text = newValue;
+                          });
+                        },
                         controller: heightController,
                         obscureText: false,
                         decoration: InputDecoration(
+                          suffixText: 'cm',
                           labelText: 'Shoulder Height',
-                          labelStyle: FlutterFlowTheme.of(context).bodyText2,
+                          labelStyle: Theme.of(context).textTheme.bodyText2,
                           hintText: 'cm',
-                          hintStyle: FlutterFlowTheme.of(context).bodyText2,
+                          hintStyle: Theme.of(context).textTheme.bodyText2,
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
+                              color: Theme.of(context).backgroundColor,
                               width: 2,
                             ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
+                              color: Theme.of(context).backgroundColor,
                               width: 2,
                             ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           filled: true,
-                          fillColor:
-                              FlutterFlowTheme.of(context).secondaryBackground,
+                          fillColor: Colors.white,
                           contentPadding:
                               EdgeInsetsDirectional.fromSTEB(20, 24, 0, 24),
                           suffixIcon: FaIcon(
@@ -499,37 +544,40 @@ class _PetProfilePageWidgetState extends State<PetProfilePageWidget> {
                             size: 22,
                           ),
                         ),
-                        style: FlutterFlowTheme.of(context).bodyText1,
+                        style: Theme.of(context).textTheme.bodyText1,
                         keyboardType: TextInputType.number,
                       ),
                     ),
                     Padding(
                       padding: EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
                       child: TextFormField(
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            widget.petData.allergies = newValue!;
+                            allergiesController.text = newValue;
+                          });
+                        },
                         controller: allergiesController,
                         obscureText: false,
                         decoration: InputDecoration(
                           labelText: 'Allergies',
-                          hintStyle: FlutterFlowTheme.of(context).bodyText2,
+                          hintStyle: Theme.of(context).textTheme.bodyText2,
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
+                              color: Theme.of(context).backgroundColor,
                               width: 2,
                             ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
+                              color: Theme.of(context).backgroundColor,
                               width: 2,
                             ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           filled: true,
-                          fillColor:
-                              FlutterFlowTheme.of(context).secondaryBackground,
+                          fillColor: Colors.white,
                           contentPadding:
                               EdgeInsetsDirectional.fromSTEB(20, 24, 0, 24),
                           suffixIcon: FaIcon(
@@ -538,7 +586,7 @@ class _PetProfilePageWidgetState extends State<PetProfilePageWidget> {
                             size: 22,
                           ),
                         ),
-                        style: FlutterFlowTheme.of(context).bodyText1,
+                        style: Theme.of(context).textTheme.bodyText1,
                         textAlign: TextAlign.start,
                         maxLines: 3,
                         keyboardType: TextInputType.multiline,
@@ -547,30 +595,33 @@ class _PetProfilePageWidgetState extends State<PetProfilePageWidget> {
                     Padding(
                       padding: EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
                       child: TextFormField(
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            widget.petData.existingConditions = newValue!;
+                            existingConditionsController.text = newValue;
+                          });
+                        },
                         controller: existingConditionsController,
                         obscureText: false,
                         decoration: InputDecoration(
                           labelText: 'Existing Conditions',
-                          hintStyle: FlutterFlowTheme.of(context).bodyText2,
+                          hintStyle: Theme.of(context).textTheme.bodyText2,
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
+                              color: Theme.of(context).backgroundColor,
                               width: 2,
                             ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderSide: BorderSide(
-                              color: FlutterFlowTheme.of(context)
-                                  .primaryBackground,
+                              color: Theme.of(context).backgroundColor,
                               width: 2,
                             ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           filled: true,
-                          fillColor:
-                              FlutterFlowTheme.of(context).secondaryBackground,
+                          fillColor: Colors.white,
                           contentPadding:
                               EdgeInsetsDirectional.fromSTEB(20, 24, 0, 24),
                           suffixIcon: Icon(
@@ -579,7 +630,7 @@ class _PetProfilePageWidgetState extends State<PetProfilePageWidget> {
                             size: 22,
                           ),
                         ),
-                        style: FlutterFlowTheme.of(context).bodyText1,
+                        style: Theme.of(context).textTheme.bodyText1,
                         textAlign: TextAlign.start,
                         maxLines: 3,
                         keyboardType: TextInputType.multiline,
@@ -593,27 +644,35 @@ class _PetProfilePageWidgetState extends State<PetProfilePageWidget> {
               alignment: AlignmentDirectional(0, 0.05),
               child: Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(0, 24, 0, 0),
-                child: FFButtonWidget(
+                child: TextButton(
+                  child: Text('Save Changes'),
                   onPressed: () async {
-                    Navigator.pop(context);
+                    final response = await savePetData();
+                    if (response.statusCode == 201 ||
+                        response.statusCode == 200) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text("Pet data saved successfully"),
+                      ));
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text("Error saving Pet data."),
+                      ));
+                    }
                   },
-                  text: 'Save Changes',
-                  options: FFButtonOptions(
-                    width: 340,
-                    height: 60,
-                    color: Color(0xFF16820F),
-                    textStyle: FlutterFlowTheme.of(context).subtitle2.override(
-                          fontFamily: 'Lexend Deca',
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.normal,
-                        ),
-                    elevation: 2,
-                    borderSide: BorderSide(
-                      color: Colors.transparent,
-                      width: 1,
+                  style: ButtonStyle(
+                    foregroundColor: MaterialStateProperty.resolveWith<Color?>(
+                      (Set<MaterialState> states) {
+                        return Colors.white; // Use the component's default.
+                      },
                     ),
-                    borderRadius: 8,
+                    backgroundColor: MaterialStateProperty.resolveWith<Color?>(
+                      (Set<MaterialState> states) {
+                        if (states.contains(MaterialState.pressed))
+                          return ColorConstants.primaryColor.withOpacity(0.5);
+                        return ColorConstants
+                            .primaryColor; // Use the component's default.
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -633,13 +692,17 @@ class _PetProfilePageWidgetState extends State<PetProfilePageWidget> {
                                   'Are you sure you want to delete this Pet Info?'),
                               actions: [
                                 TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(alertDialogContext, false),
+                                  onPressed: () => Navigator.of(context).pop(),
                                   child: Text('Cancel'),
                                 ),
                                 TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(alertDialogContext, true),
+                                  onPressed: () async {
+                                    final response = await deletePet();
+                                    if (response.statusCode == 204) {
+                                      print(widget.petData.toJson());
+                                      Navigator.pop(context, true);
+                                    }
+                                  },
                                   child: Text('Delete'),
                                 ),
                               ],
@@ -647,16 +710,29 @@ class _PetProfilePageWidgetState extends State<PetProfilePageWidget> {
                           },
                         ) ??
                         false;
+                    if (confirmDialogResponse) {
+                      await Navigator.push(
+                        context,
+                        PageTransition(
+                          type: PageTransitionType.bottomToTop,
+                          duration: Duration(milliseconds: 300),
+                          reverseDuration: Duration(milliseconds: 300),
+                          child: PetListPage(),
+                        ),
+                      );
+                    } else {
+                      Navigator.pop(context);
+                    }
                   },
                   child: Text(
                     'Delete Pet Info',
                     textAlign: TextAlign.end,
                     maxLines: 1,
-                    style: FlutterFlowTheme.of(context).bodyText1.override(
-                          fontFamily: 'Poppins',
-                          color: Color(0xFFE91E63),
-                          fontStyle: FontStyle.italic,
-                        ),
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      color: Color(0xFFE91E63),
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
                 ),
               ),

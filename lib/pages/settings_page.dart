@@ -98,11 +98,7 @@ class SettingsPageStateState extends State<SettingsPageState> {
       TaskSnapshot snapshot = await uploadTask;
       photoUrl = await snapshot.ref.getDownloadURL();
       UserChat updateInfo = UserChat(
-          id: id,
-          photoUrl: photoUrl,
-          nickname: nickname,
-          aboutMe: aboutMe,
-          isDoctor: "false");
+          id: id, photoUrl: photoUrl, nickname: nickname, aboutMe: aboutMe);
       settingProvider
           .updateDataFirestore(
               FirestoreConstants.pathUserCollection, id, updateInfo.toJson())
@@ -134,11 +130,7 @@ class SettingsPageStateState extends State<SettingsPageState> {
       isLoading = true;
     });
     UserChat updateInfo = UserChat(
-        id: id,
-        photoUrl: photoUrl,
-        nickname: nickname,
-        aboutMe: aboutMe,
-        isDoctor: "false");
+        id: id, photoUrl: photoUrl, nickname: nickname, aboutMe: aboutMe);
     settingProvider
         .updateDataFirestore(
             FirestoreConstants.pathUserCollection, id, updateInfo.toJson())
