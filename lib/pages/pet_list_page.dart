@@ -24,6 +24,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'home_page.dart';
 import 'login_page.dart';
+import 'my_nav_drawer.dart';
 
 class PetListPage extends StatefulWidget {
   const PetListPage({Key? key}) : super(key: key);
@@ -84,7 +85,11 @@ class _PetListPageState extends State<PetListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: scaffoldKey,
-      drawer: navDrawer(),
+      drawer: MyNavDrawer(
+        signOutFunction: () {
+          handleSignOut();
+        },
+      ),
       appBar: AppBar(
         backgroundColor: ColorConstants.primaryColor,
         title: Text(
@@ -380,60 +385,6 @@ class _PetListPageState extends State<PetListPage> {
               ));
         }).toList();
       },
-    );
-  }
-
-  Widget navDrawer() {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          DrawerHeader(
-            padding: EdgeInsets.only(left: 30, right: 30),
-            child: Text(""),
-            decoration: BoxDecoration(
-                color: Colors.green,
-                image: DecorationImage(
-                    fit: BoxFit.scaleDown,
-                    image: AssetImage('images/app_logo.png'))),
-          ),
-          ListTile(
-            leading: Icon(Icons.catching_pokemon),
-            title: Text('My Pets'),
-            onTap: () => {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => PetListPage()))
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.verified_user),
-            title: Text('Profile'),
-            onTap: () => {Navigator.of(context).pop()},
-          ),
-          ListTile(
-            leading: Icon(Icons.chat),
-            title: Text('Chat'),
-            onTap: () => {
-              Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => HomePage()))
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.settings),
-            title: Text('Settings'),
-            onTap: () => {
-              Navigator.of(context).pop(),
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => SettingsPage()))
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.exit_to_app),
-            title: Text('Logout'),
-            onTap: () => {handleSignOut()},
-          ),
-        ],
-      ),
     );
   }
 }

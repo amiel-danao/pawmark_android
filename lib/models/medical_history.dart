@@ -24,12 +24,13 @@ class MedicalHistory {
     return MedicalHistory(
         pet: json['pet'],
         date: DateTime.parse(json['date']),
-        description: json['description'],
-        veterinarian: json['veterinarian'],
-        diagnosis: json['diagnosis'],
-        testsPerformed: json['testsPerformed'],
-        testResults: json['testResults'],
-        action: json['action'],
-        medication: json['medication']);
+        description: json['description'] == null ? "" : json['description'],
+        veterinarian: json['veterinarian'] == null ? "" : json['veterinarian'],
+        diagnosis: json['diagnosis'] == null ? "" : json['diagnosis'],
+        testsPerformed:
+            json['tests_performed'] == null ? "" : json['tests_performed'],
+        testResults: json['test_results'] == null ? "" : json['test_results'],
+        action: json['action'] == null ? "" : json['action'],
+        medication: json['medication'] == null ? "" : json['medication']);
   }
 }

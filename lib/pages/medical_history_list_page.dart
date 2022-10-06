@@ -26,21 +26,35 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage> {
       StreamController<List<MedicalHistory>>();
   final FirebaseAuth auth = FirebaseAuth.instance;
 
+  @override
+  void initState() {
+    super.initState();
+    loadMedicalHistory();
+  }
+
   void loadMedicalHistory() async {
     print("start medical histories");
     Uri uri = Uri.parse(
         '${Env.URL_PREFIX}/api/${Env.URL_MEDICALLIST}?pet=${widget.petData.id}&format=json');
     final response = await http.get(uri);
 
-    final items = json.decode(response.body).cast<Map<String, dynamic>>();
-    List<MedicalHistory> medicals = items.map<MedicalHistory>((json) {
-      return MedicalHistory.fromJson(json);
-    }).toList();
+    try {
+      final items = json.decode(response.body).cast<Map<String, dynamic>>();
+      List<MedicalHistory> medicals = items.map<MedicalHistory>((json) {
+        return MedicalHistory.fromJson(json);
+      }).toList();
 
-    print(uri);
-    print(items.toString());
+      print(uri);
+      print(items.toString());
 
-    medicalStream.add(medicals);
+      medicalStream.add(medicals);
+    } on Exception catch (exception) {
+      print(
+          exception.toString()); // only executed if error is of type Exception
+    } catch (error) {
+      print(error
+          .toString()); // executed for errors of all types other than Exception
+    }
   }
 
   @override
