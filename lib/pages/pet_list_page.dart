@@ -10,19 +10,14 @@ import 'package:http/http.dart' as http;
 import '../constants/app_constants.dart';
 import '../constants/color_constants.dart';
 import '../env.sample.dart';
-import '../models/breed.dart';
 import '../models/pet.dart';
 import '../models/popup_choices.dart';
 import '../providers/auth_provider.dart';
 import '../themes/flutter_flow_theme.dart';
-
-///import '../flutter_flow/flutter_flow_util.dart';
 import '../pages/pet_profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-import 'home_page.dart';
 import 'login_page.dart';
 import 'my_nav_drawer.dart';
 

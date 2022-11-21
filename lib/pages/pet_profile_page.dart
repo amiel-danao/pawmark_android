@@ -12,7 +12,6 @@ import '../models/pet.dart';
 import '../pages/pet_list_page.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class PetProfilePage extends StatefulWidget {
@@ -70,7 +69,7 @@ class _PetProfilePageState extends State<PetProfilePage> {
   void loadBreeds(species) async {
     print("start getBreeds");
     Uri uri = Uri.parse(
-        '${Env.URL_PREFIX}/api/breedlist?species=${species}&format=json');
+        '${Env.URL_PREFIX}/api/breedlist?species=$species&format=json');
     final response = await http.get(uri);
 
     final items = json.decode(response.body).cast<Map<String, dynamic>>();
