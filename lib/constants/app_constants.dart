@@ -1,3 +1,5 @@
+import '../providers/auth_provider.dart';
+
 class AppConstants {
   static const appTitle = "PawMark";
   static const loginTitle = "PawMark - Login";
@@ -7,3 +9,5 @@ class AppConstants {
   static const petsPageTitle = "My Pets";
   static const petProfileTitle = "Edit Pet";
 }
+
+typedef AuthStateCallback = void Function(Status status);

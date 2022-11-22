@@ -11,7 +11,7 @@ class LoadingView extends StatelessWidget {
           color: ColorConstants.themeColor,
         ),
       ),
-      color: Colors.white.withOpacity(0.8),
+      color: Color.fromARGB(255, 56, 56, 56).withOpacity(0.8),
     );
   }
 }

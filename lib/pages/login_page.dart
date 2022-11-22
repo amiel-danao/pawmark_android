@@ -1,13 +1,12 @@
 import 'dart:convert';
 
+import 'package:auth_service/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_demo/constants/app_constants.dart';
 import 'package:flutter_chat_demo/constants/color_constants.dart';
 import 'package:flutter_chat_demo/providers/auth_provider.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
-import '../models/customer.dart';
 
 import '../env.sample.dart';
 import '../widgets/widgets.dart';
@@ -68,13 +67,7 @@ class LoginPageState extends State<LoginPage> {
                     onPressed: () async {
                       bool isSuccess = await authProvider.handleSignIn();
                       if (isSuccess) {
-                        String uid = authProvider.firebaseAuth.currentUser!.uid;
-                        String? email = authProvider.firebaseAuth.currentUser!.email;
-                        createUserProfileIfNotExist(new Customer(id: uid, email: email));
-                      }
-                      else{
-                        showSignInFailedDialog(context);
-                      }
+                      } else {}
                     },
                     child: Text(
                       'Sign in with Google',
@@ -125,81 +118,5 @@ class LoginPageState extends State<LoginPage> {
         fit: BoxFit.fill,
       ),
     ));
-  }
-
-  showSignInFailedDialog(BuildContext context) {
-
-    // set up the button
-    Widget okButton = TextButton(
-      child: Text("OK"),
-      onPressed: () { },
-    );
-
-    // set up the AlertDialog
-    AlertDialog alert = AlertDialog(
-      title: Text("Error"),
-      content: Text("Failed to sign in"),
-      actions: [
-        okButton,
-      ],
-    );
-
-    // show the dialog
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return alert;
-      },
-    );
-  }
-
-  Future<Customer>? createProfile(Customer customer) async{
-    final response = await http.get(
-      Uri.parse('${Env.URL_CUSTOMER}/${customer.id}')
-    );
-
-    if (response.statusCode == 200) {
-      // If the server did return a 201 CREATED response,
-      // then parse the JSON.
-      return Customer.fromJson(jsonDecode(response.body));
-    } else {
-      // If the server did not return a 201 CREATED response,
-      // then create a new customer profile
-      final createResponse = await http.post(
-        Uri.parse('https://jsonplaceholder.typicode.com/albums'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: customer.toJson(),
-      );
-
-      if(createResponse.statusCode == 201){
-        return Customer.fromJson(jsonDecode(response.body));
-      }
-
-      showSignInFailedDialog(context);
-      throw Exception('Failed to create profile.');
-    }
-  }
-
-  createUserProfileIfNotExist(Customer customer) {
-    if (customer.email == null || customer.id.isEmpty){
-      showSignInFailedDialog(context);
-    }
-
-    setState(() {
-      futureCustomer = createProfile(customer);
-    });
-
-    futureCustomer?.then((value) => {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-        builder: (context) => HomePage(),
-        ),
-      )
-    }).catchError((error) => {
-      showSignInFailedDialog(context)
-    });
   }
 }

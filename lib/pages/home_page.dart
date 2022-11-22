@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 
+import 'package:auth_service/auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_demo/constants/app_constants.dart';
@@ -14,6 +15,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
 import '../env.sample.dart';
+import '../login/view/login_view.dart';
 import '../models/models.dart';
 import '../widgets/widgets.dart';
 import 'pages.dart';
@@ -21,7 +23,9 @@ import 'package:http/http.dart' as http;
 import 'my_nav_drawer.dart';
 
 class HomePage extends StatefulWidget {
-  HomePage({Key? key}) : super(key: key);
+  final Customer? currentCustomer;
+
+  HomePage({Key? key, this.currentCustomer}) : super(key: key);
 
   @override
   State createState() => HomePageState();
@@ -70,7 +74,7 @@ class HomePageState extends State<HomePage> {
   Future<void> handleSignOut() async {
     authProvider.handleSignOut();
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => LoginPage()),
+      MaterialPageRoute(builder: (context) => LoginView()),
       (Route<dynamic> route) => false,
     );
   }
@@ -396,7 +400,7 @@ class HomePageState extends State<HomePage> {
               Material(
                 child: veterinarian.picture.isNotEmpty
                     ? Image.network(
-                        veterinarian.picture,
+                        '${Env.URL_PREFIX}${veterinarian.picture}',
                         fit: BoxFit.cover,
                         width: 50,
                         height: 50,
@@ -477,8 +481,10 @@ class HomePageState extends State<HomePage> {
                   arguments: ChatPageArguments(
                     peerId: veterinarian.id,
                     peerAvatar: veterinarian.picture,
-                    peerNickname:
-                        '${veterinarian.firstname} ${veterinarian.lastname}',
+                    peerNickname: veterinarian.firstname.isEmpty &&
+                            veterinarian.lastname.isEmpty
+                        ? veterinarian.email
+                        : '${veterinarian.firstname} ${veterinarian.lastname}',
                   ),
                 ),
               ),

@@ -3,6 +3,7 @@ import 'package:flutter_chat_demo/constants/color_constants.dart';
 import 'package:flutter_chat_demo/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 
+import '../login/view/login_view.dart';
 import 'pages.dart';
 
 class SplashPage extends StatefulWidget {
@@ -34,7 +35,7 @@ class SplashPageState extends State<SplashPage> {
     }
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => LoginPage()),
+      MaterialPageRoute(builder: (context) => LoginView()),
     );
   }
 
@@ -54,7 +55,8 @@ class SplashPageState extends State<SplashPage> {
             Container(
               width: 20,
               height: 20,
-              child: CircularProgressIndicator(color: ColorConstants.themeColor),
+              child:
+                  CircularProgressIndicator(color: ColorConstants.themeColor),
             ),
           ],
         ),
