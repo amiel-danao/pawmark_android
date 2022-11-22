@@ -85,11 +85,7 @@ class ChatPageState extends State<ChatPage> {
       );
     }
     String peerId = widget.arguments.peerId;
-    if (currentUserId.compareTo(peerId) > 0) {
-      groupChatId = '$currentUserId-$peerId';
-    } else {
-      groupChatId = '$peerId-$currentUserId';
-    }
+    groupChatId = '$peerId-$currentUserId';
 
     chatProvider.updateDataFirestore(
       FirestoreConstants.pathUserCollection,
