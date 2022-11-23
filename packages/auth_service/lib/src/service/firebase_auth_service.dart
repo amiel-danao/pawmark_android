@@ -9,22 +9,28 @@ class FirebaseAuthService implements AuthService {
 
   final auth.FirebaseAuth _firebaseAuth;
 
-  Customer _mapFirebaseUser(auth.User? user) {
+  Customer _mapFirebaseUser(
+      auth.User? user, String firstName, String middleName, String lastName) {
     if (user == null) {
       return Customer.empty();
     }
 
-    var splittedName = ['Name ', 'LastName'];
-    if (user.displayName != null) {
-      splittedName = user.displayName!.split(' ');
-    }
-
     final map = <String, dynamic>{
       'id': user.uid,
-      'firstname': splittedName.first,
-      'lastname': splittedName.last,
+      'firstname': firstName,
+      'middlename': middleName,
+      'lastname': lastName,
       'email': user.email ?? ''
     };
+    return Customer.fromJson(map);
+  }
+
+  Customer _mapFirebaseUserLogin(auth.User? user) {
+    if (user == null) {
+      return Customer.empty();
+    }
+
+    final map = <String, dynamic>{'id': user.uid, 'email': user.email ?? ''};
     return Customer.fromJson(map);
   }
 
@@ -39,7 +45,7 @@ class FirebaseAuthService implements AuthService {
         password: password,
       );
 
-      return _mapFirebaseUser(userCredential.user!);
+      return _mapFirebaseUserLogin(userCredential.user!);
     } on auth.FirebaseAuthException catch (e) {
       throw _determineError(e);
     }
@@ -47,6 +53,9 @@ class FirebaseAuthService implements AuthService {
 
   @override
   Future<Customer> createUserWithEmailAndPassword({
+    required String firstName,
+    required String middleName,
+    required String lastName,
     required String email,
     required String password,
   }) async {
@@ -56,7 +65,8 @@ class FirebaseAuthService implements AuthService {
         password: password,
       );
 
-      return _mapFirebaseUser(_firebaseAuth.currentUser!);
+      return _mapFirebaseUser(
+          _firebaseAuth.currentUser!, firstName, middleName, lastName);
     } on auth.FirebaseAuthException catch (e) {
       throw _determineError(e);
     }

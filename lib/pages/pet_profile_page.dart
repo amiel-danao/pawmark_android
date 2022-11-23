@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:auth_service/auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:http/http.dart' as http;
@@ -16,7 +17,10 @@ import 'package:intl/intl.dart';
 
 class PetProfilePage extends StatefulWidget {
   final Pet petData;
-  const PetProfilePage({Key? key, required this.petData}) : super(key: key);
+  final Customer currentCustomer;
+  const PetProfilePage(
+      {Key? key, required this.petData, required this.currentCustomer})
+      : super(key: key);
 
   @override
   _PetProfilePageState createState() => _PetProfilePageState();
@@ -716,7 +720,8 @@ class _PetProfilePageState extends State<PetProfilePage> {
                           type: PageTransitionType.bottomToTop,
                           duration: Duration(milliseconds: 300),
                           reverseDuration: Duration(milliseconds: 300),
-                          child: PetListPage(),
+                          child: PetListPage(
+                              currentCustomer: widget.currentCustomer),
                         ),
                       );
                     } else {

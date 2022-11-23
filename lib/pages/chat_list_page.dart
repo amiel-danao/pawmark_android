@@ -22,18 +22,18 @@ import 'pages.dart';
 import 'package:http/http.dart' as http;
 import 'my_nav_drawer.dart';
 
-class HomePage extends StatefulWidget {
-  final Customer? currentCustomer;
+class ChatListPage extends StatefulWidget {
+  final Customer currentCustomer;
 
-  HomePage({Key? key, this.currentCustomer}) : super(key: key);
+  ChatListPage({Key? key, required this.currentCustomer}) : super(key: key);
 
   @override
-  State createState() => HomePageState();
+  State createState() => ChatListPageState();
 }
 
-class HomePageState extends State<HomePage> {
-  HomePageState({Key? key});
-  final veterinarianListKey = GlobalKey<HomePageState>();
+class ChatListPageState extends State<ChatListPage> {
+  ChatListPageState({Key? key});
+  final veterinarianListKey = GlobalKey<ChatListPageState>();
 
   //final FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -67,7 +67,6 @@ class HomePageState extends State<HomePage> {
   }
 
   List<PopupChoices> choices = <PopupChoices>[
-    PopupChoices(title: 'Settings', icon: Icons.settings),
     PopupChoices(title: 'Log out', icon: Icons.exit_to_app),
   ];
 
@@ -84,6 +83,7 @@ class HomePageState extends State<HomePage> {
     return Scaffold(
       key: veterinarianListKey,
       drawer: MyNavDrawer(
+        currentCustomer: widget.currentCustomer,
         signOutFunction: () {
           handleSignOut();
         },
@@ -91,7 +91,7 @@ class HomePageState extends State<HomePage> {
       appBar: AppBar(
         backgroundColor: ColorConstants.primaryColor,
         title: Text(
-          AppConstants.homeTitle,
+          AppConstants.chatListTitle,
           style: TextStyle(
             color: Colors.white,
             fontSize: 16,
@@ -106,7 +106,7 @@ class HomePageState extends State<HomePage> {
             // List
             Column(
               children: [
-                buildSearchBar(),
+                // buildSearchBar(),
                 Expanded(
                   child: FutureBuilder<List<Veterinarian>>(
                     future: veterinarians,
@@ -128,7 +128,7 @@ class HomePageState extends State<HomePage> {
                               controller: listScrollController);
                         } else {
                           return Center(
-                            child: Text("No users"),
+                            child: Text("No veterinarians available"),
                           );
                         }
                       }
@@ -157,11 +157,11 @@ class HomePageState extends State<HomePage> {
     homeProvider = context.read<HomeProvider>();
     veterinarians = getVeterinarianList();
 
-    if (authProvider.getUserFirebaseId()?.isNotEmpty == true) {
-      currentUserId = authProvider.getUserFirebaseId()!;
+    if (authProvider.firebaseAuth.currentUser?.uid.isNotEmpty == true) {
+      currentUserId = authProvider.firebaseAuth.currentUser!.uid;
     } else {
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => LoginPage()),
+        MaterialPageRoute(builder: (context) => LoginView()),
         (Route<dynamic> route) => false,
       );
     }
@@ -199,9 +199,6 @@ class HomePageState extends State<HomePage> {
   void onItemMenuPress(PopupChoices choice) {
     if (choice.title == 'Log out') {
       handleSignOut();
-    } else {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => SettingsPage()));
     }
   }
 
@@ -330,7 +327,7 @@ class HomePageState extends State<HomePage> {
                 });
               },
               decoration: InputDecoration.collapsed(
-                hintText: 'Search nickname (you have to type exactly string)',
+                hintText: 'Search veterinarian name',
                 hintStyle:
                     TextStyle(fontSize: 13, color: ColorConstants.greyColor),
               ),
@@ -480,7 +477,7 @@ class HomePageState extends State<HomePage> {
                 builder: (context) => ChatPage(
                   arguments: ChatPageArguments(
                     peerId: veterinarian.id,
-                    peerAvatar: veterinarian.picture,
+                    peerAvatar: '${Env.URL_PREFIX}${veterinarian.picture}',
                     peerNickname: veterinarian.firstname.isEmpty &&
                             veterinarian.lastname.isEmpty
                         ? veterinarian.email

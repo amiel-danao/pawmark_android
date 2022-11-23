@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter_chat_demo/signup/view/signup_view.dart';
 import 'package:auth_service/auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,8 +9,6 @@ import 'package:email_validator/email_validator.dart';
 import '../../api/customer_controller.dart';
 import '../../constants/app_constants.dart';
 import '../../constants/color_constants.dart';
-import '../../env.sample.dart';
-import '../../pages/home_page.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/background_widget.dart';
 import '../../widgets/loading_view.dart';

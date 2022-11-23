@@ -1,14 +1,12 @@
-import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'package:auth_service/auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 import '../env.sample.dart';
-import '../pages/home_page.dart';
+import '../pages/chat_list_page.dart';
 
 // Future<Customer> createProfile(Customer customer) async {
 
@@ -18,7 +16,7 @@ void gotoHomePage(value, context) {
   Navigator.pushReplacement(
     context,
     MaterialPageRoute(
-      builder: (context) => HomePage(currentCustomer: value),
+      builder: (context) => ChatListPage(currentCustomer: value),
     ),
   );
 }
@@ -29,20 +27,13 @@ void createUserProfileIfNotExist(
     Fluttertoast.showToast(msg: "Invalid login input!");
   }
 
-  // createProfile(customer)
-  //     .then((value) => func)
-  //     .catchError((error) => {Fluttertoast.showToast(msg: error)});
-
   final response =
       await http.get(Uri.parse('${Env.URL_CUSTOMER}/${customer.id}'));
 
   if (response.statusCode == 200) {
-    // func();
-    gotoHomePage(customer, context);
-    // return Customer.fromJson(jsonDecode(response.body));
+    Customer fetchedCustomer = Customer.fromJson(jsonDecode(response.body));
+    gotoHomePage(fetchedCustomer, context);
   } else {
-    // If the server did not return a 201 CREATED response,
-    // then create a new customer profile
     final jsonData = jsonEncode(customer.toJson());
 
     try {

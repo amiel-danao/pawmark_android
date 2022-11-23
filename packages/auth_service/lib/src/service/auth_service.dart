@@ -7,6 +7,9 @@ abstract class AuthService {
   });
 
   Future<Customer> createUserWithEmailAndPassword({
+    required String firstName,
+    required String middleName,
+    required String lastName,
     required String email,
     required String password,
   });

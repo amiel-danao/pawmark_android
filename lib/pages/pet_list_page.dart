@@ -1,15 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:auth_service/auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_chat_demo/pages/medical_history_list_page.dart';
-import 'package:flutter_chat_demo/pages/settings_page.dart';
+import 'package:flutter_chat_demo/pages/profile_page.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import '../constants/app_constants.dart';
 import '../constants/color_constants.dart';
 import '../env.sample.dart';
+import '../login/view/login_view.dart';
 import '../models/pet.dart';
 import '../models/popup_choices.dart';
 import '../providers/auth_provider.dart';
@@ -18,11 +20,12 @@ import '../pages/pet_profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import 'login_page.dart';
 import 'my_nav_drawer.dart';
 
 class PetListPage extends StatefulWidget {
-  const PetListPage({Key? key}) : super(key: key);
+  final Customer currentCustomer;
+  const PetListPage({Key? key, required this.currentCustomer})
+      : super(key: key);
 
   @override
   _PetListPageState createState() => _PetListPageState();
@@ -81,6 +84,7 @@ class _PetListPageState extends State<PetListPage> {
     return Scaffold(
       key: scaffoldKey,
       drawer: MyNavDrawer(
+        currentCustomer: widget.currentCustomer,
         signOutFunction: () {
           handleSignOut();
         },
@@ -103,6 +107,7 @@ class _PetListPageState extends State<PetListPage> {
               context,
               MaterialPageRoute(
                   builder: (context) => PetProfilePage(
+                      currentCustomer: widget.currentCustomer,
                       petData:
                           Pet.getNewInstance(owner: auth.currentUser!.uid))));
         },
@@ -140,16 +145,12 @@ class _PetListPageState extends State<PetListPage> {
   }
 
   List<PopupChoices> choices = <PopupChoices>[
-    PopupChoices(title: 'Settings', icon: Icons.settings),
     PopupChoices(title: 'Log out', icon: Icons.exit_to_app),
   ];
 
   void onItemMenuPress(PopupChoices choice) {
     if (choice.title == 'Log out') {
       handleSignOut();
-    } else {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => SettingsPage()));
     }
   }
 
@@ -158,7 +159,7 @@ class _PetListPageState extends State<PetListPage> {
   Future<void> handleSignOut() async {
     authProvider.handleSignOut();
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => LoginPage()),
+      MaterialPageRoute(builder: (context) => LoginView()),
       (Route<dynamic> route) => false,
     );
   }
@@ -182,7 +183,8 @@ class _PetListPageState extends State<PetListPage> {
             await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => PetProfilePage(petData: data),
+                builder: (context) => PetProfilePage(
+                    currentCustomer: widget.currentCustomer, petData: data),
               ),
             );
           },

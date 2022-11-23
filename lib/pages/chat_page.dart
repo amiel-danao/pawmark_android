@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../login/view/login_view.dart';
 import '../widgets/widgets.dart';
 import 'pages.dart';
 
@@ -76,11 +77,11 @@ class ChatPageState extends State<ChatPage> {
   }
 
   void readLocal() {
-    if (authProvider.getUserFirebaseId()?.isNotEmpty == true) {
-      currentUserId = authProvider.getUserFirebaseId()!;
+    if (authProvider.firebaseAuth.currentUser?.uid.isNotEmpty == true) {
+      currentUserId = authProvider.firebaseAuth.currentUser!.uid;
     } else {
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => LoginPage()),
+        MaterialPageRoute(builder: (context) => LoginView()),
         (Route<dynamic> route) => false,
       );
     }
