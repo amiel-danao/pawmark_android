@@ -20,13 +20,13 @@ class MyNavDrawer extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: <Widget>[
           DrawerHeader(
-            padding: EdgeInsets.only(left: 30, right: 30),
-            child: Text(""),
+            padding: EdgeInsets.only(left: 20, right: 20),
+            child: Image(
+              image: AssetImage('images/app_logo.png'),
+            ),
             decoration: BoxDecoration(
-                color: Colors.green,
-                image: DecorationImage(
-                    fit: BoxFit.scaleDown,
-                    image: AssetImage('images/app_logo.png'))),
+              color: Colors.green,
+            ),
           ),
           ListTile(
             leading: Icon(Icons.catching_pokemon),

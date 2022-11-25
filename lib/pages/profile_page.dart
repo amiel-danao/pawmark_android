@@ -15,6 +15,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 
+import '../api/pet_controller.dart';
 import '../env.sample.dart';
 import '../widgets/profile_widgets.dart';
 import 'chat_list_page.dart';
@@ -149,11 +150,6 @@ class ProfilePageStateState extends State<ProfilePageState> {
   }
 
   void handleUpdateData() async {
-    // focusNodeNickname.unfocus();
-    // focusNodeAboutMe.unfocus();
-
-    if (widget.currentCustomer == null) return;
-
     setState(() {
       isLoading = true;
     });
@@ -211,7 +207,7 @@ class ProfilePageStateState extends State<ProfilePageState> {
                 children: <Widget>[
                   // Avatar
                   CupertinoButton(
-                    onPressed: getImage,
+                    onPressed: () {},
                     child: Container(
                       margin: EdgeInsets.all(20),
                       child: avatarImageFile == null
@@ -271,6 +267,18 @@ class ProfilePageStateState extends State<ProfilePageState> {
                             ),
                     ),
                   ),
+                  TextButton(
+                      onPressed: () {
+                        uploadImage(
+                            '${Env.URL_CUSTOMER_IMAGE}/${widget.currentCustomer.id}',
+                            'picture',
+                            {'id': widget.currentCustomer.id},
+                            context,
+                            (value) => setState(() {
+                                  photoUrl = value;
+                                }));
+                      },
+                      child: Text('Change Photo')),
                   Form(
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     key: _formKey,
@@ -279,10 +287,9 @@ class ProfilePageStateState extends State<ProfilePageState> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         const SizedBox(height: 30.0),
-                        ProfileAccountLabel(label: 'First name'),
                         ProfileAccountName(
                           controller: _firstNameController,
-                          placeHolder: '',
+                          placeHolder: 'First name',
                           textValidator: (value) {
                             if (value == null ||
                                 value.isEmpty ||
@@ -293,16 +300,14 @@ class ProfilePageStateState extends State<ProfilePageState> {
                           },
                         ),
                         const SizedBox(height: 30.0),
-                        ProfileAccountLabel(label: 'Middle name'),
                         ProfileAccountName(
                           controller: _middleNameController,
-                          placeHolder: '',
+                          placeHolder: 'Middle name',
                         ),
                         const SizedBox(height: 30.0),
-                        ProfileAccountLabel(label: 'Last name'),
                         ProfileAccountName(
                           controller: _lastNameController,
-                          placeHolder: '',
+                          placeHolder: 'Last name',
                           textValidator: (value) {
                             if (value == null ||
                                 value.isEmpty ||
@@ -313,10 +318,8 @@ class ProfilePageStateState extends State<ProfilePageState> {
                           },
                         ),
                         const SizedBox(height: 30.0),
-                        ProfileAccountLabel(label: 'Email'),
                         ProfileAccountEmail(emailController: _emailController),
                         const SizedBox(height: 30.0),
-                        ProfileAccountLabel(label: 'Phone No.'),
                         ProfileAccountPhone(phoneController: _mobileController),
                         const SizedBox(height: 30.0),
                       ],

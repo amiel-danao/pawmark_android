@@ -8,6 +8,7 @@ import 'package:flutter_chat_demo/pages/medical_history_list_page.dart';
 import 'package:flutter_chat_demo/pages/profile_page.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
+import '../api/pet_controller.dart';
 import '../constants/app_constants.dart';
 import '../constants/color_constants.dart';
 import '../env.sample.dart';
@@ -36,6 +37,7 @@ class _PetListPageState extends State<PetListPage> {
   final FirebaseAuth auth = FirebaseAuth.instance;
   late Future<List<Pet>> pets;
   StreamController<List<Pet>> petStream = StreamController<List<Pet>>();
+  var petImages = Map<String, String>();
 
   @override
   void initState() {
@@ -56,6 +58,14 @@ class _PetListPageState extends State<PetListPage> {
     List<Pet> pets = items.map<Pet>((json) {
       return Pet.fromJson(json);
     }).toList();
+
+    for (var i = 0; i < pets.length; i++) {
+      loadPetImage(
+          pets[i].id,
+          (value) => setState(() {
+                petImages[pets[i].id] = value;
+              }));
+    }
 
     print(uri);
     print(items.toString());
@@ -128,6 +138,8 @@ class _PetListPageState extends State<PetListPage> {
               // By default, show a loading spinner.
               if (!snapshot.hasData)
                 return Center(child: CircularProgressIndicator());
+              else if (snapshot.data.length == 0)
+                return Center(child: Text('You have no existing pet yet.'));
               // Render Pet lists
               return ListView.builder(
                   physics: AlwaysScrollableScrollPhysics(),
@@ -225,7 +237,7 @@ class _PetListPageState extends State<PetListPage> {
                             shape: BoxShape.circle,
                           ),
                           child: CachedNetworkImage(
-                            imageUrl: data.image,
+                            imageUrl: '${petImages[data.id]}',
                             placeholder: (context, url) => Image.asset(
                                 'images/app_icon.png',
                                 fit: BoxFit.fitWidth),

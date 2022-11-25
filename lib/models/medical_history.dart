@@ -1,5 +1,5 @@
 class MedicalHistory {
-  int pet;
+  String pet;
   DateTime date;
   String description;
   String veterinarian;
@@ -10,7 +10,7 @@ class MedicalHistory {
   String medication;
 
   MedicalHistory(
-      {this.pet = -1,
+      {this.pet = "",
       required this.date,
       this.description = "",
       required this.veterinarian,

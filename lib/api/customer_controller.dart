@@ -25,6 +25,7 @@ void createUserProfileIfNotExist(
     Customer customer, BuildContext context) async {
   if (customer.email.isEmpty || customer.id.isEmpty) {
     Fluttertoast.showToast(msg: "Invalid login input!");
+    return;
   }
 
   final response =
@@ -33,6 +34,7 @@ void createUserProfileIfNotExist(
   if (response.statusCode == 200) {
     Customer fetchedCustomer = Customer.fromJson(jsonDecode(response.body));
     gotoHomePage(fetchedCustomer, context);
+    return;
   } else {
     final jsonData = jsonEncode(customer.toJson());
 

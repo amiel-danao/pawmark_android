@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:auth_service/auth.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:http/http.dart' as http;
+import '../api/pet_controller.dart';
 import '../constants/app_constants.dart';
 import '../constants/color_constants.dart';
 import '../env.sample.dart';
@@ -38,11 +41,13 @@ class _PetProfilePageState extends State<PetProfilePage> {
   late TextEditingController allergiesController;
   late TextEditingController existingConditionsController;
   final scaffoldKey = GlobalKey<ScaffoldState>();
-  // late Future<List<Breed>> catBreeds;
-  // late Future<List<Breed>> dogBreeds;
   final DateFormat formatter = DateFormat('yyyy-MM-dd');
 
   late StreamController<List<Breed>> breedStream;
+
+  String petImage = '';
+
+  late Future<File> imageFile;
 
   @override
   void initState() {
@@ -64,8 +69,11 @@ class _PetProfilePageState extends State<PetProfilePage> {
 
     breedStream = StreamController<List<Breed>>();
 
-    // catBreeds = getBreeds('cat');
-    // dogBreeds = getBreeds('dog');
+    loadPetImage(
+        widget.petData.id,
+        (value) => setState(() {
+              petImage = value;
+            }));
     loadBreeds(widget.petData.species);
     print(widget.petData.toJson());
   }
@@ -84,21 +92,6 @@ class _PetProfilePageState extends State<PetProfilePage> {
     breedStream.add(breeds);
   }
 
-  // Future<List<Breed>> getBreeds(species) async {
-  //   print("start getBreeds");
-  //   Uri uri =
-  //       Uri.parse('${Env.URL_PREFIX}/api/breedlist?species=cat&format=json');
-  //   final response = await http.get(uri);
-
-  //   final items = json.decode(response.body).cast<Map<String, dynamic>>();
-  //   List<Breed> breeds = items.map<Breed>((json) {
-  //     return Breed.fromJson(json);
-  //   }).toList();
-
-  //   print(items.toString());
-  //   return breeds;
-  // }
-
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
         context: context,
@@ -114,9 +107,9 @@ class _PetProfilePageState extends State<PetProfilePage> {
   }
 
   Future<http.Response> savePetData() {
-    String urlCommand = '${Env.URL_PREFIX}/api/petupdate';
-    if (widget.petData.id != -1) {
-      urlCommand = '${Env.URL_PREFIX}/api/petdetails/${widget.petData.id}';
+    String urlCommand = '${Env.URL_PET}';
+    if (widget.petData.id.isNotEmpty) {
+      urlCommand = '${Env.URL_PET}/${widget.petData.id}';
 
       return http.put(
         Uri.parse(urlCommand),
@@ -137,9 +130,7 @@ class _PetProfilePageState extends State<PetProfilePage> {
   }
 
   Future<http.Response> deletePet() {
-    String urlCommand = '${Env.URL_PREFIX}/api/petupdate';
-
-    urlCommand = '${Env.URL_PREFIX}/api/petdetails/${widget.petData.id}';
+    String urlCommand = '${Env.URL_PET}/${widget.petData.id}';
 
     return http.delete(Uri.parse(urlCommand), headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
@@ -192,7 +183,7 @@ class _PetProfilePageState extends State<PetProfilePage> {
                                 shape: BoxShape.circle,
                               ),
                               child: CachedNetworkImage(
-                                imageUrl: "",
+                                imageUrl: petImage,
                                 placeholder: (context, url) => Image.asset(
                                     'images/app_icon.png',
                                     fit: BoxFit.fitWidth),
@@ -213,7 +204,14 @@ class _PetProfilePageState extends State<PetProfilePage> {
                         children: [
                           TextButton(
                               onPressed: () {
-                                print("updload photo");
+                                uploadImage(
+                                    '${Env.URL_PET_IMAGE}/${widget.petData.id}',
+                                    'image',
+                                    {'id': widget.petData.id},
+                                    context,
+                                    (value) => setState(() {
+                                          petImage = value;
+                                        }));
                               },
                               child: Text('Change Photo')),
                         ],
@@ -467,7 +465,7 @@ class _PetProfilePageState extends State<PetProfilePage> {
                         onChanged: (String? newValue) {
                           setState(() {
                             widget.petData.weight = double.parse(newValue!);
-                            weightController.text = newValue;
+                            // weightController.text = newValue;
                           });
                         },
                         controller: weightController,
@@ -512,7 +510,7 @@ class _PetProfilePageState extends State<PetProfilePage> {
                         onChanged: (String? newValue) {
                           setState(() {
                             widget.petData.height = double.parse(newValue!);
-                            heightController.text = newValue;
+                            // heightController.text = newValue;
                           });
                         },
                         controller: heightController,
@@ -658,7 +656,8 @@ class _PetProfilePageState extends State<PetProfilePage> {
                       ));
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text("Error saving Pet data."),
+                        content:
+                            Text("Error saving Pet data. ${response.body}"),
                       ));
                     }
                   },

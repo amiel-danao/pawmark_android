@@ -83,6 +83,8 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage> {
                 // By default, show a loading spinner.
                 if (!snapshot.hasData)
                   return Center(child: CircularProgressIndicator());
+                else if (snapshot.data.length == 0)
+                  return Center(child: Text('No medical history data.'));
                 return ListView.builder(
                     physics: AlwaysScrollableScrollPhysics(),
                     padding: EdgeInsets.zero,

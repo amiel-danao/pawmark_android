@@ -1,5 +1,5 @@
 class Pet {
-  int id;
+  String id;
   String name;
   DateTime dateOfBirth;
   String gender;
@@ -13,7 +13,7 @@ class Pet {
   String owner;
 
   Pet(
-      {this.id = -1,
+      {this.id = "",
       required this.name,
       required this.dateOfBirth,
       this.gender = "Male",
@@ -39,7 +39,7 @@ class Pet {
         existingConditions: json['existing_conditions'],
         image: json['image'] == null ? '' : json['image'],
         breed: json['breed'] == null ? '' : json['breed'],
-        owner: json['owner']);
+        owner: json['owner'] == null ? '' : json['owner']);
   }
 
   Map<String, dynamic> toJson() => {
@@ -52,9 +52,8 @@ class Pet {
         "allergies": allergies,
         "existing_conditions": existingConditions,
         "species": species,
-        "image": image,
         "breed": breed,
-        "owner": owner
+        "owner": owner,
       };
 
   static Pet getNewInstance({required owner}) {

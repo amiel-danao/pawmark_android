@@ -12,6 +12,7 @@ import '../../constants/color_constants.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/background_widget.dart';
 import '../../widgets/loading_view.dart';
+import '../../widgets/profile_widgets.dart';
 
 class LoginView extends StatefulWidget {
   LoginView({Key? key}) : super(key: key);
@@ -31,9 +32,8 @@ class LoginViewState extends State<LoginView> {
   @override
   void initState() {
     super.initState();
-    _emailController =
-        TextEditingController(text: "amielrenaissance4@gmail.com");
-    _passwordController = TextEditingController(text: "sixtynine6^");
+    _emailController = TextEditingController();
+    _passwordController = TextEditingController();
   }
 
   @override
@@ -69,17 +69,18 @@ class LoginViewState extends State<LoginView> {
                     direction: Axis.vertical,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: <Widget>[
-                      _LoginEmail(emailController: _emailController),
                       const SizedBox(height: 30.0),
-                      _LoginPassword(passwordController: _passwordController),
+                      ProfileAccountEmail(emailController: _emailController),
                       const SizedBox(height: 30.0),
+                      ProfileAccountPassword(
+                          passwordController: _passwordController),
                       _SubmitButton(
                         onStateChanged: (status) => setState(() {
                           _status = status;
                         }),
                         formKey: _formKey,
-                        email: _emailController.text,
-                        password: _passwordController.text,
+                        email: _emailController,
+                        password: _passwordController,
                       ),
                       const SizedBox(height: 30.0),
                       _CreateAccountButton(),
@@ -98,58 +99,6 @@ class LoginViewState extends State<LoginView> {
   }
 }
 
-class _LoginEmail extends StatelessWidget {
-  _LoginEmail({
-    Key? key,
-    required this.emailController,
-  }) : super(key: key);
-
-  final TextEditingController emailController;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width / 1.5,
-      child: TextFormField(
-        controller: emailController,
-        keyboardType: TextInputType.emailAddress,
-        decoration: const InputDecoration(hintText: 'Email', errorMaxLines: 3),
-        validator: (value) => EmailValidator.validate(value!)
-            ? null
-            : "Please enter a valid email",
-      ),
-    );
-  }
-}
-
-class _LoginPassword extends StatelessWidget {
-  _LoginPassword({
-    Key? key,
-    required this.passwordController,
-  }) : super(key: key);
-
-  final TextEditingController passwordController;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width / 1.5,
-      child: TextFormField(
-        controller: passwordController,
-        obscureText: true,
-        decoration:
-            const InputDecoration(hintText: 'Password', errorMaxLines: 3),
-        validator: (value) {
-          if (value == null || value.isEmpty || value.length < 6)
-            return "Password must not be empty and not less than 6 characters!";
-          else
-            return null;
-        },
-      ),
-    );
-  }
-}
-
 class _SubmitButton extends StatefulWidget {
   _SubmitButton({
     Key? key,
@@ -161,7 +110,7 @@ class _SubmitButton extends StatefulWidget {
 
   final AuthStateCallback onStateChanged;
   final formKey;
-  final String email, password;
+  final TextEditingController email, password;
   final AuthService _authService = FirebaseAuthService(
     authService: FirebaseAuth.instance,
   );
@@ -180,13 +129,15 @@ class SubmitState extends State<_SubmitButton> {
             widget.onStateChanged(Status.authenticating);
             await widget._authService
                 .signInWithEmailAndPassword(
-                  email: widget.email,
-                  password: widget.password,
-                )
-                .then((value) => {createUserProfileIfNotExist(value, context)})
-                .catchError((error) {
+              email: widget.email.text,
+              password: widget.password.text,
+            )
+                .then((value) {
+              createUserProfileIfNotExist(value, context);
+            }).catchError((error) {
               widget.onStateChanged(Status.authenticateError);
               Fluttertoast.showToast(msg: "Sign in fail : ${error.toString()}");
+              throw (Exception("Exception"));
             });
           } catch (e) {
             widget.onStateChanged(Status.authenticateError);
