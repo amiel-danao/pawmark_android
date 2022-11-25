@@ -27,6 +27,7 @@ void uploadImage(
   final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
   //TO convert Xfile into file
   File file = File(image!.path);
+
   //print(‘Image picked’);
   var request = http.MultipartRequest('PUT', Uri.parse(url));
   request.fields.addAll(additionalFields);

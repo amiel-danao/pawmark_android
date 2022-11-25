@@ -204,14 +204,22 @@ class _PetProfilePageState extends State<PetProfilePage> {
                         children: [
                           TextButton(
                               onPressed: () {
-                                uploadImage(
-                                    '${Env.URL_PET_IMAGE}/${widget.petData.id}',
-                                    'image',
-                                    {'id': widget.petData.id},
-                                    context,
-                                    (value) => setState(() {
-                                          petImage = value;
-                                        }));
+                                if (widget.petData.id.isNotEmpty) {
+                                  uploadImage(
+                                      '${Env.URL_PET_IMAGE}/${widget.petData.id}',
+                                      'image',
+                                      {'id': widget.petData.id},
+                                      context,
+                                      (value) => setState(() {
+                                            petImage = value;
+                                          }));
+                                } else {
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(
+                                    content: Text(
+                                        "New Pet data should be saved first!"),
+                                  ));
+                                }
                               },
                               child: Text('Change Photo')),
                         ],
@@ -555,7 +563,6 @@ class _PetProfilePageState extends State<PetProfilePage> {
                         onChanged: (String? newValue) {
                           setState(() {
                             widget.petData.allergies = newValue!;
-                            allergiesController.text = newValue;
                           });
                         },
                         controller: allergiesController,
@@ -599,7 +606,6 @@ class _PetProfilePageState extends State<PetProfilePage> {
                         onChanged: (String? newValue) {
                           setState(() {
                             widget.petData.existingConditions = newValue!;
-                            existingConditionsController.text = newValue;
                           });
                         },
                         controller: existingConditionsController,
