@@ -139,7 +139,8 @@ class ProfileAccountPassword extends StatelessWidget {
           validator: (value) {
             if (value == null || value.isEmpty || value.length < 6)
               return "Password must not be empty and not less than 6 characters!";
-            else if (otherPasswordController?.text != value)
+            else if (otherPasswordController != null &&
+                otherPasswordController?.text != value)
               return "Password doesn't match!";
             else
               return null;
