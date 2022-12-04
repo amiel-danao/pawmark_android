@@ -61,9 +61,6 @@ class ProfilePageStateState extends State<ProfilePageState> {
   File? avatarImageFile;
   late SettingProvider settingProvider;
 
-  // final FocusNode focusNodeNickname = FocusNode();
-  // final FocusNode focusNodeAboutMe = FocusNode();
-
   @override
   void initState() {
     super.initState();
@@ -93,60 +90,6 @@ class ProfilePageStateState extends State<ProfilePageState> {
     _lastNameController.dispose();
     _mobileController.dispose();
     super.dispose();
-  }
-
-  Future getImage() async {
-    ImagePicker imagePicker = ImagePicker();
-    PickedFile? pickedFile = await imagePicker
-        .getImage(source: ImageSource.gallery)
-        .catchError((err) {
-      Fluttertoast.showToast(msg: err.toString());
-    });
-    File? image;
-    if (pickedFile != null) {
-      image = File(pickedFile.path);
-    }
-    if (image != null) {
-      setState(() {
-        avatarImageFile = image;
-        isLoading = true;
-      });
-      uploadFile();
-    }
-  }
-
-  Future uploadFile() async {
-    String fileName = widget.currentCustomer.id;
-    UploadTask uploadTask =
-        settingProvider.uploadFile(avatarImageFile!, fileName);
-    // try {
-    TaskSnapshot snapshot = await uploadTask;
-    //   photoUrl = await snapshot.ref.getDownloadURL();
-
-    //   UserChat updateInfo = UserChat(
-    //       id: id, photoUrl: photoUrl, nickname: nickname, aboutMe: aboutMe);
-
-    //   settingProvider
-    //       .updateDataFirestore(
-    //           FirestoreConstants.pathUserCollection, id, updateInfo.toJson())
-    //       .then((data) async {
-    //     await settingProvider.setPref(FirestoreConstants.photoUrl, photoUrl);
-    //     setState(() {
-    //       isLoading = false;
-    //     });
-    //     Fluttertoast.showToast(msg: "Upload success");
-    //   }).catchError((err) {
-    //     setState(() {
-    //       isLoading = false;
-    //     });
-    //     Fluttertoast.showToast(msg: err.toString());
-    //   });
-    // } on FirebaseException catch (e) {
-    //   setState(() {
-    //     isLoading = false;
-    //   });
-    //   Fluttertoast.showToast(msg: e.message ?? e.toString());
-    // }
   }
 
   void handleUpdateData() async {

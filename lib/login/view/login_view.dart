@@ -73,7 +73,8 @@ class LoginViewState extends State<LoginView> {
                       ProfileAccountEmail(emailController: _emailController),
                       const SizedBox(height: 30.0),
                       ProfileAccountPassword(
-                          passwordController: _passwordController),
+                          passwordController: _passwordController,
+                          label: "Password"),
                       _SubmitButton(
                         onStateChanged: (status) => setState(() {
                           _status = status;
@@ -132,12 +133,21 @@ class SubmitState extends State<_SubmitButton> {
               email: widget.email.text,
               password: widget.password.text,
             )
-                .then((value) {
-              createUserProfileIfNotExist(value, context);
+                .then((value) async {
+              await createUserProfileIfNotExist(value, context)
+                  .then((value) {})
+                  .catchError((error) {
+                widget.onStateChanged(Status.authenticateError);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(error.toString()),
+                  ),
+                );
+              });
             }).catchError((error) {
               widget.onStateChanged(Status.authenticateError);
               Fluttertoast.showToast(msg: "Sign in fail : ${error.toString()}");
-              throw (Exception("Exception"));
+              throw (Exception("Sign in fail : ${error.toString()}"));
             });
           } catch (e) {
             widget.onStateChanged(Status.authenticateError);
@@ -148,6 +158,7 @@ class SubmitState extends State<_SubmitButton> {
             );
           }
         } else {
+          widget.onStateChanged(Status.authenticateError);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text("Invalid login input!"),

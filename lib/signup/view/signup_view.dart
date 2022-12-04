@@ -21,6 +21,8 @@ class SignUpView extends StatefulWidget {
 class SignUpState extends State<SignUpView> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _middleNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
@@ -90,9 +92,14 @@ class SignUpState extends State<SignUpView> {
                         },
                       ),
                       ProfileAccountEmail(emailController: _emailController),
-                      const SizedBox(height: 30.0),
                       ProfileAccountPassword(
-                          passwordController: _passwordController),
+                          passwordController: _passwordController,
+                          otherPasswordController: _confirmPasswordController,
+                          label: "Password"),
+                      ProfileAccountPassword(
+                          passwordController: _confirmPasswordController,
+                          otherPasswordController: _passwordController,
+                          label: "Confirm Password"),
                       const SizedBox(height: 30.0),
                       _SubmitButton(
                           formKey: _formKey,
@@ -137,43 +144,63 @@ class _SubmitButton extends StatelessWidget {
   final AuthService _authService = FirebaseAuthService(
     authService: FirebaseAuth.instance,
   );
+
+  void _submit(BuildContext context) async {
+    final isValid = formKey.currentState.validate();
+    if (!isValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Invalid input!"),
+        ),
+      );
+      return;
+    }
+
+    formKey.currentState.save();
+
+    try {
+      onStateChanged(Status.authenticating);
+      await _authService
+          .createUserWithEmailAndPassword(
+        firstName: firstName,
+        middleName: middleName,
+        lastName: lastName,
+        email: email,
+        password: password,
+      )
+          .then((value) async {
+        await createUserProfileIfNotExist(value, context)
+            .then((value) {})
+            .catchError((error) {
+          onStateChanged(Status.authenticateError);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error.toString()),
+            ),
+          );
+        });
+      }).catchError((error) {
+        onStateChanged(Status.authenticateError);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Registration fail:${error.toString()}"),
+          ),
+        );
+      });
+    } catch (e) {
+      onStateChanged(Status.authenticateError);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: () async {
-        if (formKey.currentState!.validate()) {
-          try {
-            onStateChanged(Status.authenticating);
-            await _authService
-                .createUserWithEmailAndPassword(
-              firstName: firstName,
-              middleName: middleName,
-              lastName: lastName,
-              email: email,
-              password: password,
-            )
-                .then((value) {
-              createUserProfileIfNotExist(value, context);
-            }).catchError((error) {
-              onStateChanged(Status.authenticateError);
-              Fluttertoast.showToast(msg: "Registration fail");
-            });
-          } catch (e) {
-            onStateChanged(Status.authenticateError);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(e.toString()),
-              ),
-            );
-          }
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Invalid input!"),
-            ),
-          );
-        }
-      },
+      onPressed: () => _submit(context),
       child: const Text('Create Account'),
     );
   }

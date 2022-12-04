@@ -117,11 +117,15 @@ class ProfileAccountEmail extends StatelessWidget {
 }
 
 class ProfileAccountPassword extends StatelessWidget {
-  ProfileAccountPassword({
-    Key? key,
-    required this.passwordController,
-  }) : super(key: key);
+  ProfileAccountPassword(
+      {Key? key,
+      required this.passwordController,
+      this.otherPasswordController,
+      required this.label})
+      : super(key: key);
   final TextEditingController passwordController;
+  final TextEditingController? otherPasswordController;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
@@ -135,12 +139,14 @@ class ProfileAccountPassword extends StatelessWidget {
           validator: (value) {
             if (value == null || value.isEmpty || value.length < 6)
               return "Password must not be empty and not less than 6 characters!";
+            else if (otherPasswordController?.text != value)
+              return "Password doesn't match!";
             else
               return null;
           },
           decoration: InputDecoration(
             errorMaxLines: 3,
-            labelText: 'Password',
+            labelText: label,
             labelStyle: Theme.of(context).textTheme.bodyText2,
             hintStyle: Theme.of(context).textTheme.bodyText2,
             enabledBorder: OutlineInputBorder(

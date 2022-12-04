@@ -67,8 +67,11 @@ class MyNavDrawer extends StatelessWidget {
             title: Text('Pet Tracker'),
             onTap: () => {
               Navigator.of(context).pop(),
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => PetTrackerPage()))
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          PetTrackerPage(currentCustomer: currentCustomer)))
             },
           ),
           ListTile(

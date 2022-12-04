@@ -8,6 +8,7 @@ import 'package:flutter_chat_demo/pages/medical_history_list_page.dart';
 import 'package:flutter_chat_demo/pages/profile_page.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
+import '../api/customer_controller.dart';
 import '../api/pet_controller.dart';
 import '../constants/app_constants.dart';
 import '../constants/color_constants.dart';
@@ -38,6 +39,7 @@ class _PetListPageState extends State<PetListPage> {
   late Future<List<Pet>> pets;
   StreamController<List<Pet>> petStream = StreamController<List<Pet>>();
   var petImages = Map<String, String>();
+  late AuthProvider authProvider;
 
   @override
   void initState() {
@@ -96,7 +98,7 @@ class _PetListPageState extends State<PetListPage> {
       drawer: MyNavDrawer(
         currentCustomer: widget.currentCustomer,
         signOutFunction: () {
-          handleSignOut();
+          handleSignOut(context, authProvider);
         },
       ),
       appBar: AppBar(
@@ -162,18 +164,8 @@ class _PetListPageState extends State<PetListPage> {
 
   void onItemMenuPress(PopupChoices choice) {
     if (choice.title == 'Log out') {
-      handleSignOut();
+      handleSignOut(context, authProvider);
     }
-  }
-
-  late AuthProvider authProvider;
-
-  Future<void> handleSignOut() async {
-    authProvider.handleSignOut();
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => LoginView()),
-      (Route<dynamic> route) => false,
-    );
   }
 
   Widget petCardEntry(data) {

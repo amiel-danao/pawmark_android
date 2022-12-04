@@ -222,6 +222,17 @@ class _PetProfilePageState extends State<PetProfilePage> {
                                 }
                               },
                               child: Text('Change Photo')),
+                          FutureBuilder<String>(
+                            future: loadMyDevice(widget.petData.id),
+                            builder: (BuildContext context,
+                                AsyncSnapshot<String> snapshot) {
+                              if (snapshot.hasData) {
+                                return Text('Device ID : ${snapshot.data}');
+                              } else {
+                                return Text('');
+                              }
+                            },
+                          )
                         ],
                       ),
                     ),
