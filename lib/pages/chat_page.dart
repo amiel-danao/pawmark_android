@@ -11,14 +11,14 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
+import 'package:permission_handler/permission_handler.dart';
 import '../login/view/login_view.dart';
 import '../widgets/widgets.dart';
+import 'call_page.dart';
 import 'pages.dart';
 
 class ChatPage extends StatefulWidget {
   ChatPage({Key? key, required this.arguments}) : super(key: key);
-
   final ChatPageArguments arguments;
 
   @override
@@ -467,6 +467,12 @@ class ChatPageState extends State<ChatPage> {
     return Future.value(false);
   }
 
+  Future<Map<Permission, PermissionStatus>> requestPersmission() async {
+    Map<Permission, PermissionStatus> states =
+        await [Permission.camera, Permission.microphone].request();
+    return states;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -477,6 +483,33 @@ class ChatPageState extends State<ChatPage> {
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+              onPressed: () async {
+                print('requesting permissions...');
+                final states = await requestPersmission();
+                if (states[Permission.camera] == PermissionStatus.granted &&
+                    states[Permission.microphone] == PermissionStatus.granted) {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CallPage(
+                          channelName: groupChatId,
+                          userName: widget.arguments.peerNickname,
+                        ),
+                      ));
+                  print('requested permissions.');
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          'You cannot use video call if you do not grant permissions'),
+                    ),
+                  );
+                }
+              },
+              icon: Icon(Icons.call))
+        ],
       ),
       body: WillPopScope(
         child: Stack(

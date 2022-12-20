@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_chat_demo/pages/medical_history_list_page.dart';
 import 'package:flutter_chat_demo/pages/profile_page.dart';
+import 'package:flutter_chat_demo/pages/immunization_history_list_page.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import '../api/customer_controller.dart';
@@ -210,6 +211,23 @@ class _PetListPageState extends State<PetListPage> {
                           MaterialPageRoute(
                               builder: (context) =>
                                   MedicalHistoryPage(petData: data)));
+                    },
+                  ),
+                ),
+                Align(
+                  alignment: AlignmentDirectional(0.7, 0),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.vaccines,
+                      color: ColorConstants.primaryColor,
+                      size: 30,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  ImmunizationHistoryPage(petData: data)));
                     },
                   ),
                 ),

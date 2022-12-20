@@ -8,7 +8,9 @@ class Env {
   static const String URL_CUSTOMER_IMAGE =
       "$URL_PREFIX/api/upload_customer_image";
   static const String URL_MEDICALLIST = "medicallist";
+  static const String URL_IMMUNIZATIONLIST = "immunizationlist";
   static const String URL_DEVICE_LIST = "$URL_PREFIX/api/devicelist";
   static const String URL_VETERINARY_LIST = "$URL_PREFIX/api/veterinarylist";
   static const String URL_CUSTOMER = "$URL_PREFIX/api/customer";
+  static const String APP_ID = "55aa17c02cfc41958055ed6a536863ff";
 }

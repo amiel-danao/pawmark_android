@@ -45,6 +45,9 @@ dependencies:
   auth_service:
     path: packages/auth_service
   email_validator: '^2.1.16'
+  agora_rtc_engine: ^6.0.0
+  permission_handler: ^10.2.0
+  agora_uikit: ^1.1.0
     
 
 dev_dependencies:

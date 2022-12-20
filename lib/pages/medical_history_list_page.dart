@@ -10,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../env.sample.dart';
 import '../models/medical_history.dart';
 import '../models/pet.dart';
+import 'medical_history_detail_page.dart';
 
 class MedicalHistoryPage extends StatefulWidget {
   final Pet petData;
@@ -63,7 +64,7 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage> {
       key: scaffoldKey,
       appBar: AppBar(
         backgroundColor: ColorConstants.primaryColor,
-        automaticallyImplyLeading: false,
+        // automaticallyImplyLeading: false,
         title: Text(
           'Medical History of ${widget.petData.name}',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -128,20 +129,36 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage> {
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Veterinarian: ${data.veterinarian}',
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      color: Theme.of(context).colorScheme.error,
-                      size: 16,
-                    ),
+                    Text('Veterinarian: ${data.veterinarian}',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16)),
+                    IconButton(
+                        onPressed: () => {
+                              // Navigator.of(context).pop(),
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          MedicalHistoryDetailPage(
+                                              currentPet: widget.petData,
+                                              currentMedicalHistory: data)))
+                            },
+                        icon: Icon(
+                          Icons.more,
+                          color: Colors.white,
+                          size: 24,
+                        )),
                   ],
                 ),
               ),
               Text(
-                'Diagnosis: ${data.diagnosis}',
-                style: Theme.of(context).textTheme.titleMedium,
+                'Conditions: ${data.diagnosis}',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16),
               ),
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
@@ -150,21 +167,27 @@ class _MedicalHistoryPageState extends State<MedicalHistoryPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Test results: ${data.testResults}',
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Text(
-                          '${formatter.format(data.date)}',
-                          textAlign: TextAlign.end,
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                      ],
+                      'Treatment: ${data.medication}',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16),
                     ),
                   ],
                 ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Text(
+                    '${formatter.format(data.date)}',
+                    textAlign: TextAlign.end,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16),
+                  ),
+                ],
               ),
             ],
           ),
