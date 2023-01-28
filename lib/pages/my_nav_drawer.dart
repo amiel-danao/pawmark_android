@@ -4,14 +4,20 @@ import 'package:flutter_chat_demo/pages/pet_list_page.dart';
 import 'package:flutter_chat_demo/pages/pet_tracker_page.dart';
 import 'package:flutter_chat_demo/pages/profile_page.dart';
 
+import '../widgets/notif_widget.dart';
 import 'chat_list_page.dart';
+import 'notification_page.dart';
 
 class MyNavDrawer extends StatelessWidget {
   final Function() signOutFunction;
   final Customer currentCustomer;
+  final int counter;
 
   const MyNavDrawer(
-      {Key? key, required this.signOutFunction, required this.currentCustomer})
+      {Key? key,
+      required this.signOutFunction,
+      required this.currentCustomer,
+      required this.counter})
       : super(key: key);
 
   Widget build(BuildContext context) {
@@ -72,6 +78,20 @@ class MyNavDrawer extends StatelessWidget {
                   MaterialPageRoute(
                       builder: (context) =>
                           PetTrackerPage(currentCustomer: currentCustomer)))
+            },
+          ),
+          ListTile(
+            leading: NotifWidget(
+              counter: counter.toString(),
+            ),
+            title: Text('Notifications'),
+            onTap: () => {
+              Navigator.of(context).pop(),
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          NotificationPage(currentCustomer: currentCustomer)))
             },
           ),
           ListTile(

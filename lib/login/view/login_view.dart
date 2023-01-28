@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_chat_demo/signup/view/signup_view.dart';
 import 'package:auth_service/auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:email_validator/email_validator.dart';
+import 'package:provider/provider.dart';
 
 import '../../api/customer_controller.dart';
 import '../../constants/app_constants.dart';
@@ -28,13 +30,17 @@ class LoginViewState extends State<LoginView> {
   late TextEditingController _passwordController;
   final _formKey = GlobalKey<FormState>();
   Status _status = Status.uninitialized;
+  bool isVerified = true;
+
+  late AuthProvider authProvider;
 
   @override
   void initState() {
     super.initState();
     _emailController =
         TextEditingController(text: 'amielrenaissance4@gmail.com');
-    _passwordController = TextEditingController(text: 'sixtynine6^');
+    _passwordController = TextEditingController(text: 'notCommonPassword123\$');
+    authProvider = context.read<AuthProvider>();
   }
 
   @override
@@ -83,8 +89,31 @@ class LoginViewState extends State<LoginView> {
                         formKey: _formKey,
                         email: _emailController,
                         password: _passwordController,
+                        onIsEmailVerified: (verified) => setState(() {
+                          isVerified = verified;
+                        }),
                       ),
-                      const SizedBox(height: 30.0),
+                      isVerified ||
+                              authProvider.firebaseAuth.currentUser == null
+                          ? const SizedBox(height: 30.0)
+                          : TextButton(
+                              onPressed: () async {
+                                await authProvider.firebaseAuth.currentUser
+                                    ?.sendEmailVerification();
+                                await authProvider.firebaseAuth.signOut();
+
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(SnackBar(
+                                  content:
+                                      Text('An email verification was sent!'),
+                                ));
+
+                                setState(() {
+                                  isVerified = true;
+                                });
+                              },
+                              child: const Text('Resend email verification'),
+                            ),
                       _CreateAccountButton(),
                     ],
                   ),
@@ -102,13 +131,14 @@ class LoginViewState extends State<LoginView> {
 }
 
 class _SubmitButton extends StatefulWidget {
-  _SubmitButton({
-    Key? key,
-    required this.onStateChanged,
-    required this.formKey,
-    required this.email,
-    required this.password,
-  }) : super(key: key);
+  _SubmitButton(
+      {Key? key,
+      required this.onStateChanged,
+      required this.formKey,
+      required this.email,
+      required this.password,
+      required this.onIsEmailVerified})
+      : super(key: key);
 
   final AuthStateCallback onStateChanged;
   final formKey;
@@ -116,12 +146,21 @@ class _SubmitButton extends StatefulWidget {
   final AuthService _authService = FirebaseAuthService(
     authService: FirebaseAuth.instance,
   );
+  final IsEmailVerifiedCallback onIsEmailVerified;
 
   @override
   State<StatefulWidget> createState() => SubmitState();
 }
 
 class SubmitState extends State<_SubmitButton> {
+  late AuthProvider authProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    authProvider = context.read<AuthProvider>();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
@@ -135,16 +174,26 @@ class SubmitState extends State<_SubmitButton> {
               password: widget.password.text,
             )
                 .then((value) async {
-              await createUserProfileIfNotExist(value, context)
-                  .then((value) {})
-                  .catchError((error) {
-                widget.onStateChanged(Status.authenticateError);
+              if (!authProvider.firebaseAuth.currentUser!.emailVerified) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(error.toString()),
+                    content: Text('Please verify your email first!'),
                   ),
                 );
-              });
+                widget.onIsEmailVerified(false);
+                widget.onStateChanged(Status.authenticateCanceled);
+              } else {
+                await createUserProfileIfNotExist(value, context)
+                    .then((value) {})
+                    .catchError((error) {
+                  widget.onStateChanged(Status.authenticateError);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(error.toString()),
+                    ),
+                  );
+                });
+              }
             }).catchError((error) {
               widget.onStateChanged(Status.authenticateError);
               Fluttertoast.showToast(msg: "Sign in fail : ${error.toString()}");

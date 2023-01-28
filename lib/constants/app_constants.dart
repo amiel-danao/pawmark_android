@@ -11,3 +11,5 @@ class AppConstants {
 }
 
 typedef AuthStateCallback = void Function(Status status);
+typedef IsEmailVerifiedCallback = void Function(bool isVerified);
+typedef NotitificationReceivedAttachedCallback = void Function();

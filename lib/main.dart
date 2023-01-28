@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_demo/constants/app_constants.dart';
@@ -15,6 +16,7 @@ import 'providers/providers.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   SharedPreferences prefs = await SharedPreferences.getInstance();
   runApp(MyApp(prefs: prefs));
 }
@@ -83,4 +85,23 @@ class MyApp extends StatelessWidget {
       ),
     );
   }
+}
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // If you're going to use other Firebase services in the background, such as Firestore,
+  // make sure you call `initializeApp` before using other Firebase services.
+  try {
+    await Firebase.initializeApp();
+
+    String id = message.data['id'];
+
+    DocumentReference documentReference =
+        FirebaseFirestore.instance.collection('notifications').doc(id);
+
+    documentReference.set({"read": "yes"}, SetOptions(merge: true));
+  } on Exception catch (exception) {
+    print(exception);
+  }
+  print("Handling a background message: ${message.messageId}");
 }

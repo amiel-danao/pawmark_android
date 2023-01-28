@@ -12,5 +12,6 @@ class Env {
   static const String URL_DEVICE_LIST = "$URL_PREFIX/api/devicelist";
   static const String URL_VETERINARY_LIST = "$URL_PREFIX/api/veterinarylist";
   static const String URL_CUSTOMER = "$URL_PREFIX/api/customer";
+  static const String URL_DEVICE_TOKEN = "$URL_PREFIX/api/device_token";
   static const String APP_ID = "55aa17c02cfc41958055ed6a536863ff";
 }

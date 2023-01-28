@@ -36,6 +36,7 @@ class _PetTrackerPageState extends State<PetTrackerPage> {
   final double latitudeOffset = -0.006567;
   final double longitudeOffset = -0.006711;
   final double defaultZoomLevel = 15;
+  int counter = 0;
 
   @override
   void initState() {
@@ -124,6 +125,7 @@ class _PetTrackerPageState extends State<PetTrackerPage> {
           backgroundColor: Colors.green[700],
         ),
         drawer: MyNavDrawer(
+          counter: counter,
           currentCustomer: widget.currentCustomer,
           signOutFunction: () {
             handleSignOut(context, authProvider);

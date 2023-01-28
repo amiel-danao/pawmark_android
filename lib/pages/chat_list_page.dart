@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:auth_service/auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_demo/constants/app_constants.dart';
 import 'package:flutter_chat_demo/constants/constants.dart';
@@ -13,11 +14,15 @@ import 'package:flutter_chat_demo/utils/utils.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
-
+// import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
+import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
+import '../api/common.dart';
+import '../api/customer_controller.dart';
 import '../env.sample.dart';
 import '../login/view/login_view.dart';
 import '../models/models.dart';
 import '../widgets/widgets.dart';
+import 'notification_page.dart';
 import 'pages.dart';
 import 'package:http/http.dart' as http;
 import 'my_nav_drawer.dart';
@@ -53,6 +58,58 @@ class ChatListPageState extends State<ChatListPage> {
   StreamController<bool> btnClearController = StreamController<bool>();
   TextEditingController searchBarTec = TextEditingController();
   late Future<List<Veterinarian>> veterinarians;
+  int counter = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    authProvider = context.read<AuthProvider>();
+    homeProvider = context.read<HomeProvider>();
+    veterinarians = getVeterinarianList();
+
+    if (authProvider.firebaseAuth.currentUser?.uid.isNotEmpty == true &&
+        authProvider.firebaseAuth.currentUser!.emailVerified == true) {
+      currentUserId = authProvider.firebaseAuth.currentUser!.uid;
+    } else {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => LoginView()),
+        (Route<dynamic> route) => false,
+      );
+    }
+
+    checkDeviceTokenRecord();
+    // configLocalNotification();
+    listScrollController.addListener(scrollListener);
+    askFirebaseMessagingPermission();
+
+    listenToNotifications(
+        authProvider.firebaseAuth.currentUser?.uid,
+        () => setState(() {
+              counter++;
+            }));
+  }
+
+  Future<void> checkDeviceTokenRecord() async {
+    String? token = await FirebaseMessaging.instance.getToken();
+    await createDeviceToken(token!, authProvider.firebaseAuth.currentUser!.uid);
+  }
+
+  void askFirebaseMessagingPermission() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+
+    print('User granted permission: ${settings.authorizationStatus}');
+  }
 
   Future<List<Veterinarian>> getVeterinarianList() async {
     final Uri uri = Uri.parse(Env.URL_VETERINARY_LIST);
@@ -64,6 +121,52 @@ class ChatListPageState extends State<ChatListPage> {
     }).toList();
 
     return veterinarians;
+  }
+
+  Widget buildNotificationBell() {
+    return new Stack(
+      children: <Widget>[
+        new IconButton(
+            icon: Icon(Icons.notifications),
+            onPressed: () {
+              setState(() {
+                counter = 0;
+              });
+
+              Navigator.of(context).pop();
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => NotificationPage(
+                          currentCustomer: widget.currentCustomer)));
+            }),
+        counter != 0
+            ? new Positioned(
+                right: 11,
+                top: 11,
+                child: new Container(
+                  padding: EdgeInsets.all(2),
+                  decoration: new BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  constraints: BoxConstraints(
+                    minWidth: 14,
+                    minHeight: 14,
+                  ),
+                  child: Text(
+                    '$counter',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 8,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              )
+            : new Container()
+      ],
+    );
   }
 
   List<PopupChoices> choices = <PopupChoices>[
@@ -83,6 +186,7 @@ class ChatListPageState extends State<ChatListPage> {
     return Scaffold(
       key: veterinarianListKey,
       drawer: MyNavDrawer(
+        counter: counter,
         currentCustomer: widget.currentCustomer,
         signOutFunction: () {
           handleSignOut();
@@ -98,7 +202,7 @@ class ChatListPageState extends State<ChatListPage> {
           ),
         ),
         centerTitle: true,
-        actions: <Widget>[buildPopupMenu()],
+        actions: <Widget>[buildNotificationBell()],
       ),
       body: WillPopScope(
         child: Stack(
@@ -150,27 +254,6 @@ class ChatListPageState extends State<ChatListPage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-
-    authProvider = context.read<AuthProvider>();
-    homeProvider = context.read<HomeProvider>();
-    veterinarians = getVeterinarianList();
-
-    if (authProvider.firebaseAuth.currentUser?.uid.isNotEmpty == true) {
-      currentUserId = authProvider.firebaseAuth.currentUser!.uid;
-    } else {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => LoginView()),
-        (Route<dynamic> route) => false,
-      );
-    }
-
-    configLocalNotification();
-    listScrollController.addListener(scrollListener);
-  }
-
-  @override
   void dispose() {
     super.dispose();
     btnClearController.close();
@@ -179,10 +262,10 @@ class ChatListPageState extends State<ChatListPage> {
   void configLocalNotification() {
     AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('app_icon');
-    IOSInitializationSettings initializationSettingsIOS =
-        IOSInitializationSettings();
-    InitializationSettings initializationSettings = InitializationSettings(
-        android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
+    // IOSInitializationSettings initializationSettingsIOS =
+    //     IOSInitializationSettings();
+    InitializationSettings initializationSettings =
+        InitializationSettings(android: initializationSettingsAndroid);
     flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
@@ -203,100 +286,8 @@ class ChatListPageState extends State<ChatListPage> {
   }
 
   Future<bool> onBackPress() {
-    openDialog();
+    openDialog(context);
     return Future.value(false);
-  }
-
-  Future<void> openDialog() async {
-    switch (await showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return SimpleDialog(
-            clipBehavior: Clip.hardEdge,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            contentPadding: EdgeInsets.zero,
-            children: <Widget>[
-              Container(
-                color: ColorConstants.themeColor,
-                padding: EdgeInsets.only(bottom: 10, top: 10),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Container(
-                      child: Icon(
-                        Icons.exit_to_app,
-                        size: 30,
-                        color: Colors.white,
-                      ),
-                      margin: EdgeInsets.only(bottom: 10),
-                    ),
-                    Text(
-                      'Exit app',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      'Are you sure to exit app?',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
-                    ),
-                  ],
-                ),
-              ),
-              SimpleDialogOption(
-                onPressed: () {
-                  Navigator.pop(context, 0);
-                },
-                child: Row(
-                  children: <Widget>[
-                    Container(
-                      child: Icon(
-                        Icons.cancel,
-                        color: ColorConstants.primaryColor,
-                      ),
-                      margin: EdgeInsets.only(right: 10),
-                    ),
-                    Text(
-                      'Cancel',
-                      style: TextStyle(
-                          color: ColorConstants.primaryColor,
-                          fontWeight: FontWeight.bold),
-                    )
-                  ],
-                ),
-              ),
-              SimpleDialogOption(
-                onPressed: () {
-                  Navigator.pop(context, 1);
-                },
-                child: Row(
-                  children: <Widget>[
-                    Container(
-                      child: Icon(
-                        Icons.check_circle,
-                        color: ColorConstants.primaryColor,
-                      ),
-                      margin: EdgeInsets.only(right: 10),
-                    ),
-                    Text(
-                      'Yes',
-                      style: TextStyle(
-                          color: ColorConstants.primaryColor,
-                          fontWeight: FontWeight.bold),
-                    )
-                  ],
-                ),
-              ),
-            ],
-          );
-        })) {
-      case 0:
-        break;
-      case 1:
-        exit(0);
-    }
   }
 
   Widget buildSearchBar() {

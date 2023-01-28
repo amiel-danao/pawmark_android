@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_chat_demo/pages/vaccine_detail_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import '../constants/color_constants.dart';
@@ -110,76 +111,83 @@ class _ImmunizationHistoryPageState extends State<ImmunizationHistoryPage> {
   }
 
   Widget immunizationEntry(data) {
-    return Padding(
-      padding: EdgeInsetsDirectional.fromSTEB(16, 0, 16, 12),
-      child: Container(
-        width: 100,
-        decoration: BoxDecoration(
-          color: Theme.of(context).secondaryHeaderColor,
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 5,
-              color: Color(0x3B000000),
-              offset: Offset(0, 2),
-            )
-          ],
-          borderRadius: BorderRadius.circular(8),
-        ),
+    return OutlinedButton(
+        onPressed: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      VaccineDetailsPageWidget(vaccineRecord: data)));
+        },
         child: Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(12, 12, 12, 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 4),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Type of Vaccine: ${data.vaccine}',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16))
-                  ],
-                ),
+          padding: EdgeInsetsDirectional.fromSTEB(16, 0, 16, 12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).secondaryHeaderColor,
+              boxShadow: [
+                BoxShadow(
+                  blurRadius: 5,
+                  color: Color(0x3B000000),
+                  offset: Offset(0, 2),
+                )
+              ],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(12, 12, 12, 12),
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 4),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Type of Vaccine: ${data.vaccine}',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16))
+                      ],
+                    ),
+                  ),
+                  Text(
+                    'Date: ${dateFormat.format(data.date)}',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16),
+                  ),
+                  Text(
+                    'Pet Age: ${data.petAge}',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16),
+                  ),
+                  Padding(
+                    padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Attending Doctor: ${data.veterinarian}',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16),
+                        )
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              Text(
-                'Date: ${dateFormat.format(data.date)}',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16),
-              ),
-              Text(
-                'Pet Age: ${data.petAge}',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16),
-              ),
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Attending Doctor: ${data.veterinarian}',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16),
-                    )
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 }

@@ -12,7 +12,7 @@ class Customer extends Equatable {
   });
 
   final String id;
-  final String firstName;
+  final String? firstName;
   final String? middleName;
   final String lastName;
   final String email;

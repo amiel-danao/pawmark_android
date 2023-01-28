@@ -1,7 +1,9 @@
 import 'package:auth_service/auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_demo/login/view/login_view.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:provider/provider.dart';
 
 import '../../api/customer_controller.dart';
 import '../../constants/app_constants.dart';
@@ -29,6 +31,14 @@ class SignUpState extends State<SignUpView> {
 
   final _formKey = GlobalKey<FormState>();
   Status _status = Status.uninitialized;
+
+  late AuthProvider authProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    authProvider = context.read<AuthProvider>();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,8 +79,9 @@ class SignUpState extends State<SignUpView> {
                         textValidator: (value) {
                           if (value == null ||
                               value.isEmpty ||
-                              value.length == 0)
-                            return "Please input First name";
+                              value.length == 0 ||
+                              value.contains(','))
+                            return "Please input a valid First name";
                           else
                             return null;
                         },
@@ -78,6 +89,13 @@ class SignUpState extends State<SignUpView> {
                       ProfileAccountName(
                         controller: _middleNameController,
                         placeHolder: 'Middle name',
+                        textValidator: (value) {
+                          if (value!.contains(',')) {
+                            return "Please input a valid Middle name";
+                          } else {
+                            return null;
+                          }
+                        },
                       ),
                       ProfileAccountName(
                         controller: _lastNameController,
@@ -85,8 +103,9 @@ class SignUpState extends State<SignUpView> {
                         textValidator: (value) {
                           if (value == null ||
                               value.isEmpty ||
-                              value.length == 0)
-                            return "Please input Last name";
+                              value.length == 0 ||
+                              value.contains(','))
+                            return "Please input a valid Last name";
                           else
                             return null;
                         },
@@ -102,12 +121,13 @@ class SignUpState extends State<SignUpView> {
                           label: "Confirm Password"),
                       const SizedBox(height: 30.0),
                       _SubmitButton(
+                          authProvider: authProvider,
                           formKey: _formKey,
-                          firstName: _firstNameController.text,
-                          middleName: _middleNameController.text,
-                          lastName: _lastNameController.text,
-                          email: _emailController.text,
-                          password: _passwordController.text,
+                          firstName: _firstNameController,
+                          middleName: _middleNameController,
+                          lastName: _lastNameController,
+                          email: _emailController,
+                          password: _passwordController,
                           onStateChanged: (status) => setState(() {
                                 _status = status;
                               })),
@@ -135,15 +155,18 @@ class _SubmitButton extends StatelessWidget {
       required this.email,
       required this.password,
       required this.onStateChanged,
-      required this.formKey})
+      required this.formKey,
+      required this.authProvider})
       : super(key: key);
 
   final formKey;
   final AuthStateCallback onStateChanged;
-  final String firstName, middleName, lastName, email, password;
+  final TextEditingController firstName, middleName, lastName, email, password;
   final AuthService _authService = FirebaseAuthService(
     authService: FirebaseAuth.instance,
   );
+
+  final AuthProvider authProvider;
 
   void _submit(BuildContext context) async {
     final isValid = formKey.currentState.validate();
@@ -162,14 +185,16 @@ class _SubmitButton extends StatelessWidget {
       onStateChanged(Status.authenticating);
       await _authService
           .createUserWithEmailAndPassword(
-        firstName: firstName,
-        middleName: middleName,
-        lastName: lastName,
-        email: email,
-        password: password,
+        firstName: firstName.text,
+        middleName: middleName.text,
+        lastName: lastName.text,
+        email: email.text,
+        password: password.text,
       )
           .then((value) async {
-        await createUserProfileIfNotExist(value, context)
+        authProvider.firebaseAuth.currentUser!.sendEmailVerification();
+
+        await createUserProfileIfNotExist(value, context, register: true)
             .then((value) {})
             .catchError((error) {
           onStateChanged(Status.authenticateError);
@@ -179,6 +204,15 @@ class _SubmitButton extends StatelessWidget {
             ),
           );
         });
+
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+              'Registration Successfult!\nAn email verification was sent!'),
+        ));
+
+        Navigator.of(context).pop();
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => LoginView()));
       }).catchError((error) {
         onStateChanged(Status.authenticateError);
         ScaffoldMessenger.of(context).showSnackBar(

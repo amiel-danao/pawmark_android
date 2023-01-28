@@ -41,6 +41,7 @@ class _PetListPageState extends State<PetListPage> {
   StreamController<List<Pet>> petStream = StreamController<List<Pet>>();
   var petImages = Map<String, String>();
   late AuthProvider authProvider;
+  int counter = 0;
 
   @override
   void initState() {
@@ -97,6 +98,7 @@ class _PetListPageState extends State<PetListPage> {
     return Scaffold(
       key: scaffoldKey,
       drawer: MyNavDrawer(
+        counter: counter,
         currentCustomer: widget.currentCustomer,
         signOutFunction: () {
           handleSignOut(context, authProvider);
